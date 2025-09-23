@@ -1,0 +1,2 @@
+django==5.2.6
+django-rest-framework==3.16.1

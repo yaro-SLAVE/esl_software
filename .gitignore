@@ -1,0 +1,16 @@
+.vscode
+.conda
+.venv
+.pytest_cache
+.coverage
+
+prod_settings.py
+.env
+
+.42c
+
+__pycache__
+
+node_modules
+
+local_settings.py
