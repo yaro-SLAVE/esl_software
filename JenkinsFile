@@ -4,14 +4,18 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Starting build...'
-                sh 'cd backend && pip3 install -r requirements.txt && pip3 install pylint'
+                sh '''
+                    cd backend
+                    pip install -r requirements.txt
+                    pip install pylint
+                '''
             }
         }
         stage('Test') {
             steps {
                 echo 'Running tests...'
-                sh 'pylint --version'
-                sh 'pylint **/*.py --output-format=parseable > pylint_report.txt || true'
+                sh 'python -m pylint --version'
+                sh 'python -m pylint **/*.py --output-format=parseable > pylint_report.txt || true'
                 publishHTML([
                     allowMissing: false,
                     alwaysLinkToLastBuild: true,
