@@ -6,8 +6,8 @@ pipeline {
                 echo 'Starting build...'
                 sh '''
                     cd backend
-                    pip install -r requirements.txt
-                    pip install pylint
+                    python -m pip install -r requirements.txt
+                    python -m pip install pylint
                 '''
             }
         }
@@ -15,11 +15,11 @@ pipeline {
             steps {
                 echo 'Running tests...'
                 sh '''
-                    pip install pylint
-                    pylint --version
+                    cd backend
+                    python -m pylint --version
+                    python -m pylint ./
                 '''
-                sh 'python -m pylint --version'
-                sh 'python -m pylint **/*.py --output-format=parseable > pylint_report.txt || true'
+                
                 publishHTML([
                     allowMissing: false,
                     alwaysLinkToLastBuild: true,
