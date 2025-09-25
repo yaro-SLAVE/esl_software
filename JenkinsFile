@@ -14,6 +14,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running tests...'
+                sh 'pip install pylint'
                 sh 'python -m pylint --version'
                 sh 'python -m pylint **/*.py --output-format=parseable > pylint_report.txt || true'
                 publishHTML([
