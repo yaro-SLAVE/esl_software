@@ -1,0 +1,32 @@
+pipeline {
+    agent any            // Агент: где выполнять pipeline (any – на любом доступном узле, в нашем случае на самом Jenkins)
+    tools { 
+        maven "Maven 3.8.6"   // Указываем установленный Maven (имя должно совпадать с настроенным в Global Tools)
+    }
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Starting build...'
+                cd '/backend'
+                sh 'pip install -r requirements.txt'
+                sh 'pip install pylint'
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Running tests...'
+                sh 'pylint --version'
+                sh 'pylint **/*.py --output-format=parseable > pylint_report.txt || true'
+                publishHTML([
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: '.',
+                    reportFiles: 'pylint_report.txt',
+                    reportName: 'Pylint Report'
+                ])
+            }
+        }
+        // stage('Deploy') будет добавлен после настройки тестов и отчетов
+    }
+}
