@@ -4,7 +4,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Starting build...'
-                sh 'cd /backend && pip install -r requirements.txt && pip install pylint'
+                sh 'cd backend && pip install -r requirements.txt && pip install pylint'
             }
         }
         stage('Test') {
