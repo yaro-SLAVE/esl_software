@@ -1,8 +1,5 @@
 pipeline {
     agent any            // Агент: где выполнять pipeline (any – на любом доступном узле, в нашем случае на самом Jenkins)
-    tools { 
-        maven "Maven 3.8.6"   // Указываем установленный Maven (имя должно совпадать с настроенным в Global Tools)
-    }
     stages {
         stage('Build') {
             steps {
