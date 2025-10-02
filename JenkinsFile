@@ -6,6 +6,8 @@ pipeline {
                 echo 'Starting build...'
                 sh '''
                     cd backend
+                    python -m venv myenv
+                    source myenv/bin/activate
                     python -m pip install -r requirements.txt
                     python -m pip install pylint
                 '''
