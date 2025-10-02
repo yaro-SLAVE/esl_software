@@ -7,9 +7,8 @@ pipeline {
                 sh '''
                     cd backend
                     python -m venv myenv
-                    source myenv/bin/activate
-                    python -m pip install -r requirements.txt
-                    python -m pip install pylint
+                    myenv/bin/python -m pip install -r requirements.txt
+                    myenv/bin/python -m pip install pylint
                 '''
             }
         }
@@ -18,20 +17,18 @@ pipeline {
                 echo 'Running tests...'
                 sh '''
                     cd backend
-                    python -m pylint --version
-                    python -m pylint ./
+                    myenv/bin/python -m pylint --version
                 '''
-                
-                publishHTML([
-                    allowMissing: false,
-                    alwaysLinkToLastBuild: true,
-                    keepAll: true,
-                    reportDir: '.',
-                    reportFiles: 'pylint_report.txt',
-                    reportName: 'Pylint Report'
-                ])
             }
         }
-        // stage('Deploy') будет добавлен после настройки тестов и отчетов
+        stage('Deploy'){
+            steps {
+                echo 'Deploy...'
+                sh '''
+                    cd backend
+                    myenv/bin/python -m manage.py migrate
+                '''
+            }
+        }
     }
 }
