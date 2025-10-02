@@ -18,6 +18,7 @@ pipeline {
                 sh '''
                     cd backend
                     myenv/bin/python -m pylint --version
+                    myenv/bin/python -m pylint --ignore=myenv
                 '''
             }
         }
@@ -27,7 +28,6 @@ pipeline {
                 sh '''
                     cd backend
                     myenv/bin/python manage.py migrate
-                    myenv/bin/python manage.py runserver
                 '''
             }
         }
