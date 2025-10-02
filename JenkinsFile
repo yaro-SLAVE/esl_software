@@ -26,7 +26,8 @@ pipeline {
                 echo 'Deploy...'
                 sh '''
                     cd backend
-                    myenv/bin/python -m manage.py migrate
+                    myenv/bin/python manage.py migrate
+                    myenv/bin/python manage.py runserver
                 '''
             }
         }
