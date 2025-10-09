@@ -9,6 +9,7 @@ pipeline {
                     python -m venv myenv
                     myenv/bin/python -m pip install -r requirements.txt
                     myenv/bin/python -m pip install pylint
+                    myenv/bin/python manage.py migrate
                 '''
             }
         }
@@ -18,6 +19,7 @@ pipeline {
                 sh '''
                     cd backend
                     myenv/bin/python -m pylint --version
+                    myenv/bin/python manage.py test
                 '''
             }
         }
@@ -26,7 +28,7 @@ pipeline {
                 echo 'Deploy...'
                 sh '''
                     cd backend
-                    myenv/bin/python manage.py migrate
+                    myenv/bin/python manage.py runserver
                 '''
             }
         }
