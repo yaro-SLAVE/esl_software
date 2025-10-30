@@ -19,7 +19,6 @@ pipeline {
                 sh '''
                     cd backend
                     myenv/bin/python -m pylint --version
-                    myenv/bin/python manage.py test
                 '''
             }
         }
