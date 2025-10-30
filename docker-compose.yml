@@ -1,0 +1,26 @@
+version: "3.8"
+services:
+  esl-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.django
+    restart: unless-stopped
+    volumes:
+      - media:/app/media
+      - django-static:/app/staticfiles
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    restart: unless-stopped
+    volumes:
+      - media:/usr/share/nginx/html/media
+      - django-static:/usr/share/nginx/html/static
+    depends_on:
+      - esl-service
+
+volumes:
+  db-data:
+  media:
+  django-static:

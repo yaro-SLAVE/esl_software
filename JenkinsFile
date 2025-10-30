@@ -27,8 +27,7 @@ pipeline {
             steps {
                 echo 'Deploy...'
                 sh '''
-                    cd backend
-                    myenv/bin/python manage.py runserver
+                    docker compose up
                 '''
             }
         }
