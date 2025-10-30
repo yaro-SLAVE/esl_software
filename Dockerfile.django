@@ -1,7 +1,7 @@
 FROM python
 
 ENV PYTHONBUFFERED 1
-ENV DJANGO_SETTINGS_MODULE prod_settings
+#ENV DJANGO_SETTINGS_MODULE prod_settings
 
 WORKDIR /app
 COPY backend/. /app/.
