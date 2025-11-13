@@ -122,3 +122,5 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+STATIC_ROOT = BASE_DIR + '/staticfiles'
