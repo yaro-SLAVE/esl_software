@@ -19,6 +19,8 @@ services:
       - django-static:/usr/share/nginx/html/static
     depends_on:
       - esl-service
+    ports:
+      - "4754:80"
 
 volumes:
   db-data:
