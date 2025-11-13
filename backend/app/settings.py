@@ -124,7 +124,7 @@ DATABASES = {
     }
 }
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 CSRF_TRUSTED_ORIGINS = [
     "http://62.109.14.233:4754"
