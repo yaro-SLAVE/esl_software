@@ -3,9 +3,11 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 
+class ProfileRole(models.Model):
+    name=models.TextField()
+
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, related_name='user', on_delete=models.CASCADE)
-    middle_name = models.TextField(null=True, blank=True)
+    user=models.OneToOneField(User, related_name='user', on_delete=models.CASCADE)
 
 class Organization(models.Model):
     general_manager=models.ForeignKey(User, related_name="general_manager", on_delete=models.CASCADE)
@@ -16,3 +18,12 @@ class OrganizationFilial(models.Model):
     address=models.TextField()
     start_time=models.TimeField()
     end_time=models.TimeField()
+
+class Shelf(models.Model):
+    number=models.IntegerField()
+    location=models.JSONField()
+
+class Product(models.Model):
+    number=models.IntegerField()
+    barcode=models.TextField()
+    shelf=models.ForeignKey(Shelf, related_name="shelf", on_delete=models.CASCADE)
