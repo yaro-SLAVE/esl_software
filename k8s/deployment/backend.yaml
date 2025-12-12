@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: localhost:5000/esl-service:latest
+        image: localhost:5000/eslservice-esl-service:latest
         ports:
         - containerPort: 8000
         livenessProbe:
