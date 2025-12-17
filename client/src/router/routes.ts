@@ -1,4 +1,8 @@
 import type { RouteRecordRaw } from 'vue-router';
+import FilialListPage from '../pages/filials/FilialListPage.vue';
+import FilialItemPage from '../pages/filials/FilialItemPage.vue';
+import AuthorizationPage from '../pages/AuthorizationPage.vue';
+import ProfilePage from '../pages/ProfilePage.vue';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -7,8 +11,24 @@ const routes: RouteRecordRaw[] = [
     children: [{ path: '', component: () => import('pages/IndexPage.vue') }],
   },
 
-  // Always leave this as last one,
-  // but you can also remove it
+  {
+    path: '/filial',
+    component: () => FilialListPage,
+    children: [{ path: '/:id', component: () => FilialItemPage }],
+  },
+
+  {
+    path: '/authorization',
+    component: () => AuthorizationPage,
+    children: [],
+  },
+
+  {
+    path: '/profile',
+    component: () => ProfilePage,
+    children: [],
+  },
+
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),

@@ -6,6 +6,8 @@ import {
   createWebHistory,
 } from 'vue-router';
 import routes from './routes';
+import useUserProfileStore from '../stores/authstore';
+import { storeToRefs } from 'pinia';
 
 /*
  * If not building with SSR mode, you can
@@ -24,12 +26,20 @@ export default defineRouter(function (/* { store, ssrContext } */) {
   const Router = createRouter({
     scrollBehavior: () => ({ left: 0, top: 0 }),
     routes,
-
-    // Leave this as is and make changes in quasar.conf.js instead!
-    // quasar.conf.js -> build -> vueRouterMode
-    // quasar.conf.js -> build -> publicPath
     history: createHistory(process.env.VUE_ROUTER_BASE),
   });
+
+  Router.beforeEach((to, from, next) => {
+  const { is_auth } = storeToRefs(useUserProfileStore());
+
+  if (!is_auth.value && to.name !== 'AuthorizationPage') {
+    next({ name: 'AuthorizationPage' });
+  } else if (is_auth.value && to.name === 'Authorization') {
+    next({ name: 'ProfilePage' });
+  } else {
+    next();
+  }
+});
 
   return Router;
 });
