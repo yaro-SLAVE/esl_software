@@ -25,6 +25,7 @@ class OrganizationFilial(models.Model):
     end_time=models.TimeField()
 
 class Shelf(models.Model):
+    filial=models.ForeignKey(OrganizationFilial, related_name="filial", on_delete=models.CASCADE)
     number=models.IntegerField()
     location=models.JSONField()
 
