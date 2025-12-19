@@ -1,0 +1,543 @@
+openapi: '3.0.3'
+info:
+  title: Service for ESL
+  version: '1.0'
+servers:
+  - url: http://localhost/
+tags:
+  - name: auth
+    description: Методы, связанные с аутентификацией
+  - name: profile
+    description: Методы, связанные с профилем
+  - name: filials
+    description: Методы, связанные с филиалами
+  - name: shelfs
+    description: Методы, связанные со стеллажами
+  - name: products
+    description: Методы, связанные с продуктами
+  - name: esl
+    description: Методы, связанные с электронными ценниками
+
+paths:
+  /api/auth/login/:
+    post:
+      tags: 
+        - auth
+      summary: Получение пары токенов по имени пользователя и паролю.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '401':
+          description: Unauthorized
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tokens'
+  /api/auth/logout/:
+    post:
+      tags: 
+        - auth
+      summary: Инвалидация refresh токена
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh:
+                  type: string
+      responses:
+        '401':
+          description: Unauthorized
+        '200':
+          description: OK
+
+  /api/profile/self-info/:
+    get:
+      tags:
+        - profile
+      summary: Получение информации о пользователе
+      security:
+        - bearer: []
+      responses:
+        '401':
+          description: Unauthorized
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileInfo'
+  
+  /api/filial/:
+    get:
+      tags:
+        - filials
+      security:
+        - bearer: []
+      summary: Получение списка филиалов
+      responses:
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilialsList'
+
+    post:
+      tags:
+        - filials
+      security:
+        - bearer: []
+      summary: Создание нового филиала
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FilialToCreate'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Ошибка в запросе
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+
+  /api/filial/{id}/:
+    get:
+      tags:
+        - filials
+      security:
+        - bearer: []
+      summary: Получение информации о филиале по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+            description: ID филиала
+      responses:
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilialInfo'
+    put:
+      tags:
+        - filials
+      security:
+        - bearer: []
+      summary: Изменение информации о филиале по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+            description: ID филиала
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FilialInfo'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Ошибка в запросе
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+
+  /api/product/show/{barcode}/:
+    get:
+      tags:
+        - products
+      summary: Получение полной информации о продукте
+      parameters:
+        - name: barcode
+          in: path
+          required: true
+          schema:
+            type: string
+            description: Штрихкод товара
+      responses:
+        '404':
+          description: Not Found
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductToShow"
+
+  /api/product/:
+    get:
+      tags:
+        - products
+      security:
+        - bearer: []
+      summary: Получение списка товаров
+      responses:
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    short_name:
+                      type: string
+                    barcode:
+                      type: string
+
+
+  /api/esl/error/:
+    post:
+      tags:
+        - esl
+      security:
+        - bearer: []
+      summary: Создание нового филиала
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ESLError'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Ошибка в запросе
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+
+  /api/esl/firmware/:
+    get:
+      tags:
+        - esl
+      security:
+        - bearer: []
+      summary: Получение информации о загруженных прошивках
+      responses:
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    firmware:
+                      type: string
+                    upload_date:
+                      type: string
+                      format: date
+      
+    post:
+      tags:
+        - esl
+      security:
+        - bearer: []
+      summary: Загрузка новой прошивки
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firmware:
+                  type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Ошибка в запросе
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+
+    put:
+      tags:
+        - esl
+      security:
+        - bearer: []
+      summary: Обновление прошивки у устройств
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  filial:
+                    type: number
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Ошибка в запросе
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+
+  /api/shelf/{id}/:
+    get:
+      tags:
+        - shelfs
+      security:
+        - bearer: []
+      summary: Получение информации о стеллаже по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+            description: ID филиала
+      responses:
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shelf'
+    put:
+      tags:
+        - shelfs
+      security:
+        - bearer: []
+      summary: Изменение информации о стеллаже по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+            description: ID филиала
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Shelf'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Ошибка в запросе
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+
+  /api/shelf/:
+    post:
+      tags:
+        - shelfs
+      security:
+        - bearer: []
+      summary: Создание нового стеллажа
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShelfToCreate'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Ошибка в запросе
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+  
+
+
+
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer токен, помещаемый в заголовок Authorization
+
+  schemas:
+    Tokens:
+      type: object
+      description: Пара токенов access и refresh
+      properties:
+        access:
+          description: Токен, помещаемый в заголовок Authorization
+          type: string
+        refresh:
+          description: Токен, использующийся для получения новой пары токенов
+          type: string
+    
+    ProfileInfo:
+      type: object
+      description: Информация о пользователе
+      properties:
+        username:
+          description: username пользователя
+          type: string
+        first_name:
+          description: Имя 
+          type: string
+        last_name:
+          description: Фамилия
+          type: string
+        groups:
+          description: Группы пользователя
+          type: array
+          items:
+            type: string
+            enum:
+              - Reader
+              - Librarian
+
+    FilialToList:
+      type: object
+      description: Филиал
+      properties:
+        address: 
+          type: string
+        name: 
+          type: string
+          
+    FilialsList:
+      type: array
+      items: 
+        $ref: '#/components/schemas/FilialToList'
+
+    Product:
+      type: object
+      properties:
+        barcode:
+          type: string
+
+    Shelf:
+      type: object
+      properties:
+        number:
+          type: number
+        ip:
+          type: string
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+
+    ShelfToCreate:
+      type: object
+      properties:
+        organization:
+          type: number
+        number:
+          type: number
+        ip:
+          type: string
+    
+    FilialInfo:
+      type: object
+      properties:
+        name: 
+          type: string
+        address:
+          type: string
+        shelfs:
+          type: array
+          items:
+            $ref: '#/components/schemas/Shelf'
+
+    FilialToCreate:
+      type: object
+      properties:
+        name: 
+          type: string
+        address:
+          type: string
+
+    ESLError:
+      type: object
+      properties:
+        error_type:
+          type: string
+          description: Тип ошибки
+          enum:
+            - display
+            - nfc
+        error_time:
+          type: string
+          format: datetime
+        error_number:
+          type: number
+    
+    ProductToShow:
+      type: object
+      properties:
+        short_name:
+          type: string
+        old_price:
+          type: number
+        current_price:
+          type: number
+        have_promotion:
+          type: boolean
+        description: 
+          type: string
+        photo:
+          type: string
