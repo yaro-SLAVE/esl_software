@@ -12,7 +12,7 @@ const routes: RouteRecordRaw[] = [
   },
 
   {
-    path: '/filial',
+    path: '/filials',
     component: () => FilialListPage,
     children: [{ path: '/:id', component: () => FilialItemPage }],
   },

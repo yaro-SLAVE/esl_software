@@ -6,8 +6,8 @@ import {
   createWebHistory,
 } from 'vue-router';
 import routes from './routes';
-import useUserProfileStore from '../stores/authstore';
-import { storeToRefs } from 'pinia';
+// import useUserProfileStore from '../stores/authstore';
+// import { storeToRefs } from 'pinia';
 
 /*
  * If not building with SSR mode, you can
@@ -29,17 +29,17 @@ export default defineRouter(function (/* { store, ssrContext } */) {
     history: createHistory(process.env.VUE_ROUTER_BASE),
   });
 
-  Router.beforeEach((to, from, next) => {
-  const { is_auth } = storeToRefs(useUserProfileStore());
+  // Router.beforeEach((to, from, next) => {
+  //   const { is_auth } = storeToRefs(useUserProfileStore());
 
-  if (!is_auth.value && to.name !== 'AuthorizationPage') {
-    next({ name: 'AuthorizationPage' });
-  } else if (is_auth.value && to.name === 'Authorization') {
-    next({ name: 'ProfilePage' });
-  } else {
-    next();
-  }
-});
+  //   if (!is_auth.value && to.name !== 'AuthorizationPage') {
+  //     next({ name: 'AuthorizationPage' });
+  //   } else if (is_auth.value && to.name === 'Authorization') {
+  //     next({ name: 'ProfilePage' });
+  //   } else {
+  //     next();
+  //   }
+  // });
 
   return Router;
 });

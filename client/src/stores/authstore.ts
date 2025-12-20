@@ -1,13 +1,15 @@
 import {defineStore} from "pinia";
-import {computed, ref, onBeforeMount} from 'vue';
+import {ref, onBeforeMount} from 'vue';
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-import type { RefSymbol } from "@vue/reactivity";
 import type { User} from "../types"
-import router from "../router";
 import { useQuasar } from 'quasar';
 
+import { useRouter } from 'vue-router';
+
 const $q = useQuasar();
+
+const router = useRouter();
 
 const useUserProfileStore = defineStore("UserProfileStore", () => {
     type Tokens = {
@@ -19,10 +21,10 @@ const useUserProfileStore = defineStore("UserProfileStore", () => {
     
     const userProf = ref<User>();
 
-    const jwt = ref<Token>($q.localStorage.getItem('jwt') || '');
-    const refresh = ref<Token>($q.localStorage.getItem('refresh') || '');
+    const jwt = ref<Token>($q.localStorage.getItem('jwt') as string || '');
+    const refresh = ref<Token>($q.localStorage.getItem('refresh') as string || '');
 
-    const is_auth = ref<Boolean>($q.localStorage.getItem('authorization') || false);
+    const is_auth = ref<boolean>($q.localStorage.getItem('authorization') || false);
 
     function isTokenValid(token: Token): boolean {
         if (token === undefined) {
@@ -80,7 +82,7 @@ const useUserProfileStore = defineStore("UserProfileStore", () => {
             profData.append('user', String(user.id));
             profData.append('role', String(role));
 
-            const profile = (await axios.post("/api/profile/", profData));
+            // const profile = (await axios.post("/api/profile/", profData));
 
             return true;
         } catch(error) {
@@ -105,7 +107,7 @@ const useUserProfileStore = defineStore("UserProfileStore", () => {
 
         await axios.post("/admin/logout/")
 
-        router.push('/login');
+        await router.push('/login');
     }
 
     async function updateTokens(): Promise<boolean> {
@@ -165,7 +167,11 @@ const useUserProfileStore = defineStore("UserProfileStore", () => {
         await getUserInfo();
     });
 
-    setInterval(updateTokens, 120000);
+    setInterval(() => {
+        updateTokens().catch(error => {
+            console.error('Error updating tokens:', error);
+        });
+    }, 120000);
 
     return {userProf, jwt, is_auth, login, logout, getUserInfo, registry, getAuthInfo};
 });
