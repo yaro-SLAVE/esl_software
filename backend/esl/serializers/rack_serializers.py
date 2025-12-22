@@ -16,10 +16,10 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model=Product
-        fields="__all__"
+        fields=['id', 'short_name', 'barcode']
 
-class ItemSerializer(serializers.ModelSerializer):
+class ProductShowSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model=Item
-        fields="__all__"
+        model=Product
+        fields=['short_name', 'description', 'price', 'prev_price', 'have_promotion', 'barcode']

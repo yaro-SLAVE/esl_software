@@ -9,6 +9,8 @@ tags:
     description: Методы, связанные с аутентификацией
   - name: profile
     description: Методы, связанные с профилем
+  - name: organizations
+    description: Методы, связанные с организациями
   - name: filials
     description: Методы, связанные с филиалами
   - name: racks
@@ -171,6 +173,27 @@ paths:
           description: OK
         '400':
           description: Ошибка в запросе
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+
+    delete:
+      tags:
+        - filials
+      security:
+        - bearer: []
+      summary: Удаление филиала по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+            description: ID филиала
+      responses:
+        '200':
+          description: OK
         '401':
           description: Unauthorized
         '403':
@@ -356,7 +379,7 @@ paths:
           required: true
           schema:
             type: number
-            description: ID филиала
+            description: ID стеллажа
       responses:
         '401':
           description: Unauthorized
@@ -380,7 +403,7 @@ paths:
           required: true
           schema:
             type: number
-            description: ID филиала
+            description: ID стеллажа
       requestBody:
         required: true
         content:
@@ -392,6 +415,27 @@ paths:
           description: OK
         '400':
           description: Ошибка в запросе
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+
+    delete:
+      tags:
+        - racks
+      security:
+        - bearer: []
+      summary: Удаление стеллажа по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+            description: ID стеллажа
+      responses:
+        '200':
+          description: OK
         '401':
           description: Unauthorized
         '403':
@@ -419,6 +463,125 @@ paths:
           description: Unauthorized
         '403':
           description: Forbiden
+
+  /api/organization/:
+    get:
+      tags:
+        - organizations
+      security:
+        - bearer: []
+      summary: Получение списка организаций в доступе у текущего пользователя
+      responses:
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Organization'
+    
+    post:
+      tags:
+        - organizations
+      security:
+        - bearer: []
+      summary: Создание организации
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationToCreate'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Ошибка в запросе
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+    
+  /api/organization/{id}/:
+    get:
+      tags:
+        - organizations
+      security:
+        - bearer: []
+      summary: Получение информации об организации по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+            description: ID организации
+      responses:
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+    put:
+      tags:
+        - organizations
+      security:
+        - bearer: []
+      summary: Изменение информации об организации по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+            description: ID организации
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Ошибка в запросе
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+      
+    delete:
+      tags:
+        - organizations
+      security:
+        - bearer: []
+      summary: Удаление организации по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+            description: ID организации
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+
 
 components:
   securitySchemes:
@@ -565,4 +728,16 @@ components:
         description: 
           type: string
         photo:
+          type: string
+    
+    Organization:
+      type: object
+      properties:
+        name: 
+          type: string
+
+    OrganizationToCreate:
+      type: object
+      properties:
+        name:
           type: string

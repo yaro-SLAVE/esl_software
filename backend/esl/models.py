@@ -10,8 +10,10 @@ class UserProfile(models.Model):
 class Organization(models.Model):
     general_manager=models.ForeignKey(User, related_name="general_manager", on_delete=models.CASCADE)
     ur_address=models.TextField()
+    name=models.TextField()
 
 class Integration(models.Model):
+    name=models.TextField()
     organization=models.ForeignKey(Organization, related_name="intagration_organization", on_delete=models.CASCADE)
     key=models.TextField()
     last_session=models.DateTimeField()
@@ -31,15 +33,13 @@ class Product(models.Model):
     shelf=models.IntegerField()
     number=models.IntegerField()
     barcode=models.TextField()
-    rack=models.ForeignKey(Rack, related_name="rack", on_delete=models.CASCADE)
-
-class Item(models.Model):
-    barcode=models.TextField()
     short_name=models.TextField()
     description=models.TextField()
     price=models.FloatField()
     have_promotion=models.BooleanField()
     prev_price=models.FloatField()
+    photo=models.ImageField(upload_to='products/')
+    rack=models.ForeignKey(Rack, related_name="rack", on_delete=models.CASCADE)
 
 class ESL(models.Model):
     rack=models.ForeignKey(Rack, related_name="esl_rack", on_delete=models.CASCADE)
