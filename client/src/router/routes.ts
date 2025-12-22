@@ -13,20 +13,27 @@ const routes: RouteRecordRaw[] = [
 
   {
     path: '/filials',
-    component: () => FilialListPage,
-    children: [{ path: '/:id', component: () => FilialItemPage }],
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      { path: '', component: () => FilialListPage },
+      { path: '/:id', component: () => FilialItemPage }
+    ],
   },
 
   {
     path: '/authorization',
-    component: () => AuthorizationPage,
-    children: [],
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      { path: '', component: () => AuthorizationPage},
+    ],
   },
 
   {
     path: '/profile',
-    component: () => ProfilePage,
-    children: [],
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      { path: '', component: () => ProfilePage },
+    ],
   },
 
   {

@@ -22,15 +22,16 @@ class OrganizationFilial(models.Model):
     start_time=models.TimeField()
     end_time=models.TimeField()
 
-class Shelf(models.Model):
+class Rack(models.Model):
     filial=models.ForeignKey(OrganizationFilial, related_name="filial", on_delete=models.CASCADE)
     number=models.IntegerField()
     location=models.JSONField()
 
 class Product(models.Model):
+    shelf=models.IntegerField()
     number=models.IntegerField()
     barcode=models.TextField()
-    shelf=models.ForeignKey(Shelf, related_name="shelf", on_delete=models.CASCADE)
+    rack=models.ForeignKey(Rack, related_name="rack", on_delete=models.CASCADE)
 
 class Item(models.Model):
     barcode=models.TextField()
@@ -39,3 +40,8 @@ class Item(models.Model):
     price=models.FloatField()
     have_promotion=models.BooleanField()
     prev_price=models.FloatField()
+
+class ESL(models.Model):
+    rack=models.ForeignKey(Rack, related_name="esl_rack", on_delete=models.CASCADE)
+    esl_id=models.TextField()
+    

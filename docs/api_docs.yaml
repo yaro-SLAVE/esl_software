@@ -11,7 +11,7 @@ tags:
     description: Методы, связанные с профилем
   - name: filials
     description: Методы, связанные с филиалами
-  - name: shelfs
+  - name: racks
     description: Методы, связанные со стеллажами
   - name: products
     description: Методы, связанные с продуктами
@@ -224,6 +224,22 @@ paths:
                     barcode:
                       type: string
 
+  /api/esl/:
+    post:
+      tags:
+        - esl
+      summary: Добавление нового устройства
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ESLToAdd'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Ошибка в запросе
 
   /api/esl/error/:
     post:
@@ -327,10 +343,10 @@ paths:
         '403':
           description: Forbiden
 
-  /api/shelf/{id}/:
+  /api/rack/{id}/:
     get:
       tags:
-        - shelfs
+        - racks
       security:
         - bearer: []
       summary: Получение информации о стеллаже по ID
@@ -351,10 +367,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Shelf'
+                $ref: '#/components/schemas/Rack'
     put:
       tags:
-        - shelfs
+        - racks
       security:
         - bearer: []
       summary: Изменение информации о стеллаже по ID
@@ -370,7 +386,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Shelf'
+              $ref: '#/components/schemas/Rack'
       responses:
         '200':
           description: OK
@@ -381,10 +397,10 @@ paths:
         '403':
           description: Forbiden
 
-  /api/shelf/:
+  /api/rack/:
     post:
       tags:
-        - shelfs
+        - racks
       security:
         - bearer: []
       summary: Создание нового стеллажа
@@ -393,7 +409,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ShelfToCreate'
+              $ref: '#/components/schemas/RackToCreate'
       responses:
         '200':
           description: OK
@@ -403,9 +419,6 @@ paths:
           description: Unauthorized
         '403':
           description: Forbiden
-  
-
-
 
 components:
   securitySchemes:
@@ -468,8 +481,12 @@ components:
       properties:
         barcode:
           type: string
+        shelf:
+          type: number
+        number:
+          type: number
 
-    Shelf:
+    Rack:
       type: object
       properties:
         number:
@@ -481,7 +498,7 @@ components:
           items:
             $ref: '#/components/schemas/Product'
 
-    ShelfToCreate:
+    RackToCreate:
       type: object
       properties:
         organization:
@@ -498,10 +515,10 @@ components:
           type: string
         address:
           type: string
-        shelfs:
+        racks:
           type: array
           items:
-            $ref: '#/components/schemas/Shelf'
+            $ref: '#/components/schemas/Rack'
 
     FilialToCreate:
       type: object
@@ -525,6 +542,14 @@ components:
           format: datetime
         error_number:
           type: number
+    
+    ESLToAdd:
+      type: object
+      properties:
+        rack:
+          type: number
+        token:
+          type: string
     
     ProductToShow:
       type: object

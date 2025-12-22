@@ -28,8 +28,12 @@ const linksList = [
           Quasar App
         </q-toolbar-title>
 
-        <div class="row">
-          <q-btn 
+        <q-tabs
+          class="custom-tabs"
+          active-class="custom-active-tab"
+          indicator-class="custom-indicator"
+        >
+          <q-route-tab 
             flat
             v-for="link in linksList"
             :key="link.title"
@@ -37,7 +41,7 @@ const linksList = [
             :label="link.title"
             :to="link.link"
           />
-        </div>
+        </q-tabs>
 
         <q-btn/>
         <q-btn/>
@@ -51,7 +55,7 @@ const linksList = [
   </q-layout>
 </template>
 
-<style lang="css">
+<style lang="scss">
   .q-toolbar {
     display: grid;
     grid-template-columns: 2fr 6fr 1fr 1fr;
@@ -59,5 +63,9 @@ const linksList = [
     align-items: center;
     background: #F5F2F2;
     color: black;
+  }
+
+  .error-btn {
+    
   }
 </style>

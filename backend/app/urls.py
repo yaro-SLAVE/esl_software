@@ -19,7 +19,6 @@ from django.contrib import admin
 from django.urls import path, include
 
 from rest_framework.routers import DefaultRouter
-from esl.api import *
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -28,8 +27,6 @@ from rest_framework_simplejwt.views import (
 )
 
 router = DefaultRouter()
-router.register("health", HealthViewset, basename="health")
-router.register("stress", StressTestViewset, basename="stress")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
