@@ -18,6 +18,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from django.conf import settings
+from django.conf.urls.static import static
+
 from rest_framework.routers import DefaultRouter
 
 from rest_framework_simplejwt.views import (
@@ -26,7 +29,11 @@ from rest_framework_simplejwt.views import (
     TokenBlacklistView,
 )
 
+from esl.views.rack_views import RackViewset, ProductViewset
+
 router = DefaultRouter()
+router.register("rack", RackViewset, basename="rack")
+router.register("product", ProductViewset, basename="product")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -34,4 +41,4 @@ urlpatterns = [
     path("api/auth/refresh/", TokenRefreshView.as_view()),
     path("api/auth/logout/", TokenBlacklistView.as_view()),
     path('api/', include(router.urls)),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

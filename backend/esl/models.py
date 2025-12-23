@@ -21,13 +21,13 @@ class Integration(models.Model):
 class OrganizationFilial(models.Model):
     organization=models.ForeignKey(Organization, related_name="filial_organization", on_delete=models.CASCADE)
     address=models.TextField()
-    start_time=models.TimeField()
-    end_time=models.TimeField()
+    start_time=models.TimeField(null=True, blank=True)
+    end_time=models.TimeField(null=True, blank=True)
 
 class Rack(models.Model):
     filial=models.ForeignKey(OrganizationFilial, related_name="filial", on_delete=models.CASCADE)
     number=models.IntegerField()
-    location=models.JSONField()
+    location=models.JSONField(null=True, blank=True)
 
 class Product(models.Model):
     shelf=models.IntegerField()
@@ -38,7 +38,7 @@ class Product(models.Model):
     price=models.FloatField()
     have_promotion=models.BooleanField()
     prev_price=models.FloatField()
-    photo=models.ImageField(upload_to='products/')
+    photo=models.ImageField(upload_to='products/', null=True, blank=True)
     rack=models.ForeignKey(Rack, related_name="rack", on_delete=models.CASCADE)
 
 class ESL(models.Model):
