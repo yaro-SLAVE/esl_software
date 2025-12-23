@@ -3,19 +3,19 @@
 const linksList = [
   {
     title: 'Филиалы',
-    link: '/filials'
+    link: '/'
   },
   {
-    title: 'Интеграция',
-    link: '/integration'
+    title: 'Интеграции',
+    link: '/'
   },
   {
     title: 'Статистика',
-    link: '/statistics'
+    link: '/'
   },
   {
     title: 'Прошивка',
-    link: '/firmware'
+    link: '/'
   }
 ];
 </script>
@@ -25,7 +25,7 @@ const linksList = [
     <q-header>
       <q-toolbar>
         <q-toolbar-title>
-          Quasar App
+          App
         </q-toolbar-title>
 
         <q-tabs
@@ -63,9 +63,5 @@ const linksList = [
     align-items: center;
     background: #F5F2F2;
     color: black;
-  }
-
-  .error-btn {
-    
   }
 </style>

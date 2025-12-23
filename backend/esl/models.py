@@ -23,11 +23,14 @@ class OrganizationFilial(models.Model):
     address=models.TextField()
     start_time=models.TimeField(null=True, blank=True)
     end_time=models.TimeField(null=True, blank=True)
+    rows=models.IntegerField(default=3)
+    columns=models.IntegerField(default=3)
 
 class Rack(models.Model):
     filial=models.ForeignKey(OrganizationFilial, related_name="filial", on_delete=models.CASCADE)
     number=models.IntegerField()
-    location=models.JSONField(null=True, blank=True)
+    row=models.IntegerField(default=0)
+    column=models.IntegerField(default=0)
 
 class Product(models.Model):
     shelf=models.IntegerField()

@@ -35,8 +35,52 @@ class RackViewset(
     def get_serializer_class(self):
         if self.action == "update":
             return RackUpdateSerializer
+        elif self.action == "list":
+            return RackListSerializer
         else: 
             return RackSerializer
+        
+    def list(self, request, *args, **kwargs):
+        filial_id = request.GET.get('filial') 
+        filial = OrganizationFilial.objects.filter(pk=filial_id).first()
+
+        racks = self.get_queryset().filter(filial=filial)
+
+        response = {
+            "filial": {
+                "organization_name": filial.organization.name,
+                "address": filial.address,
+                "rows": filial.rows,
+                "columns": filial.columns
+            },
+            "racks": []
+        }
+
+        for rack in racks:
+            esl = ESL.objects.get(rack=rack)
+            products = Product.objects.filter(rack=rack).all()
+
+            response["racks"].append({
+                "id": rack.id,
+                "row": rack.row,
+                "column": rack.column,
+                "number": rack.number,
+                "esl_ip": esl.esl_ip,
+                "products": [
+                    {
+                        "barcode": product.barcode,
+                        "short_name": product.short_name,
+                        "shelf": product.shelf,
+                        "number": product.number
+                    } for product in products
+                ]
+            })
+
+        print(response)
+        
+        serializer = self.get_serializer(response)
+
+        return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
         r = super().update(request, *args, **kwargs)

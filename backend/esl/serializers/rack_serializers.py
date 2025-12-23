@@ -4,12 +4,29 @@ from esl.models import *
 
 from esl.serializers.organization_serializers import OrganizationFilialSerializer
 
-class RackSerializer(serializers.ModelSerializer):
-    filial=OrganizationFilialSerializer()
+class RackListSerializer(serializers.Serializer):
+    class FilialSerializer(serializers.Serializer):
+        organization_name=serializers.CharField()
+        address=serializers.CharField()
+        rows=serializers.IntegerField()
+        columns=serializers.IntegerField()
 
-    class Meta:
-        model=Rack
-        fields="__all__"
+    class RackSerilizer(serializers.Serializer):
+        class ProductSerializer(serializers.Serializer):
+            barcode=serializers.CharField()
+            short_name=serializers.CharField()
+            shelf=serializers.IntegerField()
+            number=serializers.IntegerField()
+
+        id=serializers.IntegerField()
+        row=serializers.IntegerField()
+        column=serializers.IntegerField()
+        number=serializers.CharField()
+        esl_ip=serializers.CharField()
+        products=ProductSerializer(many=True)
+
+    filial=FilialSerializer()
+    racks=RackSerilizer(many=True)
 
 class ProductToRackUpdateSerializer(serializers.Serializer):
     shelf = serializers.IntegerField()
@@ -38,6 +55,13 @@ class RackUpdateSerializer(serializers.Serializer):
             product_to_change.save()
 
         return validated_data
+
+class RackSerializer(serializers.ModelSerializer):
+    filial=OrganizationFilialSerializer
+
+    class Meta:
+        model=Rack
+        fields="__all__"
 
 class ProductSerializer(serializers.ModelSerializer):
     rack=RackSerializer()
