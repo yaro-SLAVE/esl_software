@@ -17,6 +17,8 @@ from rest_framework.response import Response
 
 from esl.esl.api.product import send_product, ESLResponse
 
+import asyncio
+
 
 class RackViewset(
     ListModelMixin,
@@ -29,36 +31,53 @@ class RackViewset(
         barcode = serializers.CharField()
 
     queryset=Rack.objects.all()
-    serializer_class=RackSerializer
-    permission_classes=[IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action == "update":
+            return RackUpdateSerializer
+        else: 
+            return RackSerializer
 
     def update(self, request, *args, **kwargs):
-        rack = super().update(request, *args, **kwargs)
+        r = super().update(request, *args, **kwargs)
+
+        pk = self.kwargs["pk"]
+
+        rack = Rack.objects.filter(pk=pk).first()
 
         product = Product.objects.filter(rack = rack).first()
 
-        serializer = self.Serializer(data={
+        serializer = self.ESLSerializer(data={
             'name': product.short_name,
             'price': product.price,
             'barcode': product.barcode
         })
         serializer.is_valid(raise_exception=True)
 
-        token = 'qwe123123qwe'
+        esl = ESL.objects.filter(rack = rack).first()
 
-        with ClientSession() as client:
-            response: ESLResponse | None = None
+        asyncio.run(self.send_to_esl(
+                    serializer.validated_data,
+                    esl.token,
+                    esl.esl_ip
+                ))
+                
+        return r
 
-            response = send_product(
-                client, 
-                serializer.validated_data["name"], 
-                serializer.validated_data["price"], 
-                serializer.validated_data["barcode"],
-                token
-            )
-        
-        return rack
-
+    async def send_to_esl(self, data, token, esl_ip):
+        async with ClientSession() as client:
+            try:
+                response = await send_product(
+                    client, 
+                    data["name"], 
+                    data["price"], 
+                    data["barcode"],
+                    token,
+                    esl_ip
+                )
+                return response
+            except ClientResponseError as e:
+                print(f"Error sending to ESL: {e}")
 
 
 class ProductViewset(

@@ -13,11 +13,9 @@ class OrganizationViewset(
 ):
     queryset=Organization.objects.all()
     serializer_class=OrganizationSerializer
-    permission_classes=[IsAuthenticated]
 
 class OrganizationFilialViewset(
     GenericViewSet
 ):
     queryset=OrganizationFilial.objects.all()
     serializer_class=OrganizationFilialSerializer
-    permission_classes={IsAuthenticated}

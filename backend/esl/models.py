@@ -39,9 +39,10 @@ class Product(models.Model):
     have_promotion=models.BooleanField()
     prev_price=models.FloatField()
     photo=models.ImageField(upload_to='products/', null=True, blank=True)
-    rack=models.ForeignKey(Rack, related_name="rack", on_delete=models.CASCADE)
+    rack=models.ForeignKey(Rack, related_name="rack", on_delete=models.CASCADE, null=True, blank=True)
 
 class ESL(models.Model):
     rack=models.ForeignKey(Rack, related_name="esl_rack", on_delete=models.CASCADE)
-    esl_id=models.TextField()
+    esl_ip=models.TextField()
+    token=models.TextField()
     

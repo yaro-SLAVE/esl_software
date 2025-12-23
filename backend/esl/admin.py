@@ -25,3 +25,7 @@ class RackAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['barcode', 'short_name']
+
+@admin.register(ESL)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ['esl_ip', 'rack']
