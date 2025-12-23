@@ -35,24 +35,33 @@ class ProductToRackUpdateSerializer(serializers.Serializer):
 
 class RackUpdateSerializer(serializers.Serializer):
     products = ProductToRackUpdateSerializer(many=True)
+    row = serializers.IntegerField(required=False)
+    column = serializers.IntegerField(required=False)
 
     def update(self, instance, validated_data):
-        products_to_delete = Product.objects.filter(rack = instance).all()
+        print(validated_data["products"])
+        if "products" in validated_data:
+            products_to_delete = Product.objects.filter(rack = instance).all()
 
-        for product in products_to_delete:
-            product.rack = None
-            product.shelf = 0
-            product.number = 0
-            product.save()
+            for product in products_to_delete:
+                product.rack = None
+                product.shelf = -1
+                product.number = -1
+                product.save()
+            
+            products_to_add = validated_data["products"]
+
+            for product in products_to_add:
+                product_to_change = Product.objects.filter(pk = product["id"]).first()
+                product_to_change.rack = instance
+                product_to_change.shelf = product["shelf"]
+                product_to_change.number = product["number"]
+                product_to_change.save()
         
-        products_to_add = validated_data["products"]
-
-        for product in products_to_add:
-            product_to_change = Product.objects.filter(pk = product["id"]).first()
-            product_to_change.rack = instance
-            product_to_change.shelf = product["shelf"]
-            product_to_change.number = product["number"]
-            product_to_change.save()
+        elif "row" in validated_data:
+            instance.row =validated_data["row"]
+            instance.column =validated_data["column"]
+            instance.save()
 
         return validated_data
 
@@ -68,7 +77,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model=Product
-        fields=['id', 'short_name', 'barcode']
+        fields=['id', 'short_name', 'barcode', 'rack']
 
 class ProductShowSerializer(serializers.ModelSerializer):
 

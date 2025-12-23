@@ -23,6 +23,7 @@ import asyncio
 class RackViewset(
     ListModelMixin,
     UpdateModelMixin,
+    DestroyModelMixin,
     GenericViewSet
 ):
     class ESLSerializer(serializers.Serializer):
@@ -75,8 +76,6 @@ class RackViewset(
                     } for product in products
                 ]
             })
-
-        print(response)
         
         serializer = self.get_serializer(response)
 
@@ -85,26 +84,27 @@ class RackViewset(
     def update(self, request, *args, **kwargs):
         r = super().update(request, *args, **kwargs)
 
-        pk = self.kwargs["pk"]
+        if ("products" in request.data):
+            pk = self.kwargs["pk"]
 
-        rack = Rack.objects.filter(pk=pk).first()
+            rack = Rack.objects.filter(pk=pk).first()
 
-        product = Product.objects.filter(rack = rack).first()
+            product = Product.objects.filter(rack = rack).first()
 
-        serializer = self.ESLSerializer(data={
-            'name': product.short_name,
-            'price': product.price,
-            'barcode': product.barcode
-        })
-        serializer.is_valid(raise_exception=True)
+            serializer = self.ESLSerializer(data={
+                'name': product.short_name,
+                'price': product.price,
+                'barcode': product.barcode
+            })
+            serializer.is_valid(raise_exception=True)
 
-        esl = ESL.objects.filter(rack = rack).first()
+            esl = ESL.objects.filter(rack = rack).first()
 
-        asyncio.run(self.send_to_esl(
-                    serializer.validated_data,
-                    esl.token,
-                    esl.esl_ip
-                ))
+            asyncio.run(self.send_to_esl(
+                        serializer.validated_data,
+                        esl.token,
+                        esl.esl_ip
+                    ))
                 
         return r
 
@@ -122,6 +122,16 @@ class RackViewset(
                 return response
             except ClientResponseError as e:
                 print(f"Error sending to ESL: {e}")
+    
+    def destroy(self, request, *args, **kwargs):
+        pk = self.kwargs["pk"]
+
+        rack = Rack.objects.get(pk=pk)
+        rack.row = -1
+        rack.column = -1
+        rack.save()
+
+        return Response()
 
 
 class ProductViewset(
