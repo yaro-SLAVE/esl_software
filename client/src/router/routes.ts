@@ -40,8 +40,6 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/product/:barcode',
     component: () => ProductShowPage,
-    children: [
-    ],
   },
 
   {

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import axios from 'axios';
-import { validateHeaderValue } from 'http';
 import { ref, computed, onBeforeMount } from 'vue';
 
 type ActiveSquare = {
