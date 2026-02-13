@@ -34,12 +34,11 @@ class ProductToRackUpdateSerializer(serializers.Serializer):
     id = serializers.IntegerField()
 
 class RackUpdateSerializer(serializers.Serializer):
-    products = ProductToRackUpdateSerializer(many=True)
+    products = ProductToRackUpdateSerializer(many=True, required=False)
     row = serializers.IntegerField(required=False)
     column = serializers.IntegerField(required=False)
 
     def update(self, instance, validated_data):
-        print(validated_data["products"])
         if "products" in validated_data:
             products_to_delete = Product.objects.filter(rack = instance).all()
 

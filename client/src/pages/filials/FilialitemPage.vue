@@ -239,26 +239,26 @@ async function updateProduct(){
           <div class="row q-gutter-md">
             <q-btn
               color="primary"
-              label="+ строка"
+              label="+строка"
               @click="addRow"
               class="col-2"
             />
             <q-btn
               color="primary"
-              label="+ столбец"
+              label="+столбец"
               @click="addColumn"
               class="col-2"
             />
             <q-btn
               color="negative"
-              label="- строка"
+              label="-строка"
               @click="removeRow"
               :disabled="rows <= 1"
               class="col-2"
             />
             <q-btn
               color="negative"
-              label="- столбец"
+              label="-столбец"
               @click="removeColumn"
               :disabled="columns <= 1"
               class="col-2"
