@@ -4,10 +4,8 @@ from django.contrib.auth.models import User
 class Company(models.Model):
     name=models.TextField()
     external_id=models.TextField(null=True, blank=True)
-    integration_login=models.TextField(null=True, blank=True)
-    integration_password=models.TextField(null=True, blank=True)
-    integration_url=models.TextField(null=True, blank=True)
     polling_frequency=models.IntegerField(null=True, blank=True)
+    container_id=models.TextField(null=True, blank=True)
 
 class CompanyFilial(models.Model):
     company=models.ForeignKey(Company, related_name="filial_company", on_delete=models.CASCADE)
