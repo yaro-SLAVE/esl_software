@@ -29,11 +29,9 @@ from rest_framework_simplejwt.views import (
     TokenBlacklistView,
 )
 
-from esl.views.rack_views import RackViewset, ProductViewset
-
 router = DefaultRouter()
-router.register("rack", RackViewset, basename="rack")
-router.register("product", ProductViewset, basename="product")
+# router.register("rack", RackViewset, basename="rack")
+# router.register("product", ProductViewset, basename="product")
 
 urlpatterns = [
     path("admin/", admin.site.urls),

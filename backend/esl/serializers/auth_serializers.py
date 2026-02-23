@@ -1,18 +1,18 @@
-from rest_framework import serializers
+# from rest_framework import serializers
 
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 
-from esl.models import *
+# from backend.esl.models.company import *
 
-class UserSerializer(serializers.ModelSerializer):
+# class UserSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model=User
-        fields="__all__"
+#     class Meta:
+#         model=User
+#         fields="__all__"
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    user=UserSerializer()
+# class UserProfileSerializer(serializers.ModelSerializer):
+#     user=UserSerializer()
 
-    class Meta:
-        model=UserProfile
-        fields="__all__"
+#     class Meta:
+#         model=UserProfile
+#         fields="__all__"

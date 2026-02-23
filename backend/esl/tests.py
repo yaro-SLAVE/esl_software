@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from .models import UserProfile, Organization, OrganizationFilial
+from .models.company import UserProfile, Organization, OrganizationFilial
 import datetime
 
 
