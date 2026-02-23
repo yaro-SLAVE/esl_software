@@ -19,3 +19,16 @@ DATABASES = {
 #         "PORT": "5432",
 #     }
 # }
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            'PASSWORD': '',
+            'TIMEOUT': 300,
+        },
+        'KEY_PREFIX': 'esl',
+    }
+}
