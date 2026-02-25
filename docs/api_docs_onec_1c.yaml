@@ -1,0 +1,9 @@
+openapi: '3.0.3'
+info:
+  title: Service fo 1C
+  version: '1.0'
+servers:
+  - url: localhost:5000
+
+paths:
+  /api/product
