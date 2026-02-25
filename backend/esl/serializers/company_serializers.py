@@ -22,3 +22,9 @@ class CompanyFilialSerializer(serializers.ModelSerializer):
     class Meta:
         model=CompanyFilial
         fields="__all__"
+
+class IntegrationSerializer(serializers.Serializer):
+    company=serializers.IntegerField()
+    login=serializers.CharField()
+    password=serializers.CharField()
+    url=serializers.CharField()

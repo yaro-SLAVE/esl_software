@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from django.contrib.auth.models import User
 
-from backend.esl.models.profile import *
+from esl.models.profile import *
 
 class UserSerializer(serializers.ModelSerializer):
 
