@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from dataclasses_json import DataClassJsonMixin, config, Undefined
 from aiohttp import ClientSession
-from django.conf import settings
 
 @dataclass
 class ESLResponse(DataClassJsonMixin):

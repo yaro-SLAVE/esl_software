@@ -6,4 +6,101 @@ servers:
   - url: localhost:5000
 
 paths:
-  /api/product
+  /api/product/{id}/:
+    get:
+      summary: Получение информации о товаре по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+            description: ID товара
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+
+  /api/product/:
+    get:
+      summary: Получение получение списка товаров
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+  
+  /api/updates/:
+    get:
+      summary: Получение последних обновлений
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+
+  /api/company-info/:
+    get:
+      summary: Получение последних обновлений
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  company:
+                    $ref: "#/components/schemas/Company"
+                  filials:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Filial"
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: number
+        short_name:
+          type: string
+        old_price:
+          type: number
+        current_price:
+          type: number
+        have_promotion:
+          type: boolean
+        description: 
+          type: string
+        photo:
+          type: string
+
+    Filial:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+
+    Company:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        

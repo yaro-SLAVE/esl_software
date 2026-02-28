@@ -1,43 +1,141 @@
-# flask_app/app.py
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 import requests
 import os
-import logging
+from dotenv import load_dotenv
 
 app = Flask(__name__)
-logging.basicConfig(level=logging.INFO)
 
-ONC_SERVER = os.getenv('ONEC_URL', '')
-ONC_USER = os.getenv('ONEC_LOGIN', '')
-ONC_PASSWORD = os.getenv('ONEC_PASSWORD', '')
+load_dotenv()
+
+ONEC_URL = os.getenv('ONEC_URL', '')
+ONEC_LOGIN = os.getenv('ONEC_LOGIN', '')
+ONEC_PASSWORD = os.getenv('ONEC_PASSWORD', '')
+
+@staticmethod
+def send_request(url, filter=None):
+    if filter is not None:
+        response = requests.get(
+            f"{ONEC_URL}/odata/standard.odata/{url}?$format=json&$filter={filter.replace(' ', '%20').replace("'", "'")}",
+            auth=(ONEC_LOGIN, ONEC_PASSWORD),
+            timeout=30
+        )
+    else:
+        response = requests.get(
+            f"{ONEC_URL}/odata/standard.odata/{url}?$format=json",
+            auth=(ONEC_LOGIN, ONEC_PASSWORD),
+            timeout=30
+        )
+
+    return response
+
+
+@app.route('/api/product', methods=['GET'])
+def get_products_list():
+    try:
+        response_products = send_request("Catalog_Номенклатура")
+        
+        products = response_products.json().get('value')
+
+        products_data = []
+        for product in products:
+            products_data.append({
+                'id': product.get('Ref_Key'),
+                'short_name': product.get('Description'),
+                'description': product.get('Комментарий'),
+            })
+
+        return products_data
+            
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Error connecting to 1C: {str(e)}'
+        }), 503
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Internal error: {str(e)}'
+        }), 500
 
 @app.route('/api/product/<id>', methods=['GET'])
 def get_product_info(id):
     try:
-        date_from = request.args.get('date_from')
-        date_to = request.args.get('date_to')
+        response_product = send_request(f"Catalog_Номенклатура(guid'{id}')")
+
+        response_fix_price = send_request('InformationRegister_ЦеныНоменклатуры', f"Номенклатура_Key eq guid'{id}'")
+
+        response_prices = send_request("Document_УстановкаЦенНоменклатуры")
         
-        response = requests.get(
-            f"{ONC_SERVER}/odata/standard.odata/{id}",
-            params={
-                '$filter': f"Date ge {date_from} and Date le {date_to}",
-                '$format': 'json'
-            },
-            auth=(ONC_USER, ONC_PASSWORD),
-            timeout=30
-        )
-        
-        if response.status_code == 200:
-            return jsonify({
-                'status': 'success',
-                'data': response.json(),
-                'source': '1c'
-            })
+        product = response_product.json()
+        prices = response_prices.json().get('value')
+        prices = prices[len(prices) - 1].get('Запасы')
+        fix_price = response_fix_price.json().get('value')
+
+        price = next((item for item in prices if item['Номенклатура_Key'] == product.get('Ref_Key')), None)
+
+        if price is not None:
+            product_data = {
+                'id': product.get('Ref_Key'),
+                'short_name': product.get('Description'),
+                'description': product.get('Комментарий'),
+                'price': price.get('Цена'),
+                'old_price': price.get('ЦенаСтарая')
+            }
+
         else:
-            return jsonify({
-                'status': 'error',
-                'message': f'1C returned status {response.status_code}'
-            }), 502
+            product_data = {
+                'id': product.get('Ref_Key'),
+                'short_name': product.get('Description'),
+                'description': product.get('Комментарий'),
+                'price': fix_price.get('Цена'),
+                'old_price': fix_price.get('Цена')
+            }
+
+        return product_data
+            
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Error connecting to 1C: {str(e)}'
+        }), 503
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Internal error: {str(e)}'
+        }), 500
+
+@app.route('/api/updates', methods=['GET'])
+def get_updates():
+    pass
+
+@app.route('/api/company-info', methods=['GET'])
+def get_company_info():
+    try:
+        company_info = {
+            'company': {},
+            'filials': []
+        }
+
+        response_companies = send_request('Catalog_Организации', "PredefinedDataName eq 'ОсновнаяОрганизация'")
+
+        response_filials = send_request('Catalog_СтруктурныеЕдиницы', "ТипСтруктурнойЕдиницы eq 'МагазинГруппаСкладов'")
+
+        company = response_companies.json().get('value')[0]
+        filials = response_filials.json().get('value')
+
+        company_info['company'] = {
+            'id': company.get('Ref_Key'),
+            'name': company.get('НаименованиеСокращенное')
+        }
+
+        for filial in filials:
+            company_info['filials'].append({
+                'id': filial.get('Ref_Key'),
+                'name': filial.get('Description')
+            })
+
+
+        return company_info
             
     except requests.exceptions.RequestException as e:
         return jsonify({

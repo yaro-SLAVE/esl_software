@@ -30,13 +30,14 @@ from rest_framework_simplejwt.views import (
 )
 
 from esl.views.rack_views import RackViewset, ProductViewset
-from esl.views.company_views import CompanyViewset, CompanyFilialViewset
+from esl.views.company_views import CompanyViewset, CompanyFilialViewset, IntegrationViewset
 
 router = DefaultRouter()
 router.register("rack", RackViewset, basename="rack")
 router.register("product", ProductViewset, basename="product")
 router.register("company", CompanyViewset, basename="company")
 router.register("filial", CompanyFilialViewset, basename="filial")
+router.register("integration", IntegrationViewset, basename="integration")
 
 urlpatterns = [
     path("admin/", admin.site.urls),

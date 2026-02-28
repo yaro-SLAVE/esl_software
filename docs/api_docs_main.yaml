@@ -491,6 +491,82 @@ paths:
         '403':
           description: Forbiden
 
+  /api/integration/{id}:
+    put:
+      tags:
+        - integration
+      security:
+        - bearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+            description: ID интеграции
+      summary: Обновление информации для интеграции
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Ошибка в запросе
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+        
+    delete:
+      tags:
+        - integration
+      security:
+        - bearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+            description: ID интеграции
+      summary: Удаление интеграции
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Ошибка в запросе
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+
+  /api/company/update/:
+    get:
+      tags:
+        - force
+      security:
+        - bearer: []
+      summary: ПРинудительное обновление информации о компании
+      responses:
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+        '200':
+          description: OK
+  
+  /api/product/update/:
+    get:
+      tags:
+        - force
+      security:
+        - bearer: []
+      summary: ПРинудительное обновление информации о товарах на ценниках
+      responses:
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+        '200':
+          description: OK
 
 components:
   securitySchemes:
