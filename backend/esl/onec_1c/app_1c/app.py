@@ -2,6 +2,7 @@ from flask import Flask, jsonify
 import requests
 import os
 from dotenv import load_dotenv
+import base64
 
 app = Flask(__name__)
 
@@ -25,6 +26,21 @@ def send_request(url, filter=None):
             auth=(ONEC_LOGIN, ONEC_PASSWORD),
             timeout=30
         )
+
+    return response
+
+@staticmethod
+def get_product_image(image_id):
+    response = requests.get(
+        f"{ONEC_URL}/odata/standard.odata/Catalog_НоменклатураПрисоединенныеФайлы(guid'1387e11e-13b7-11f1-937e-14133384446c')/ФайлХранилище",
+        auth=(ONEC_LOGIN, ONEC_PASSWORD),
+        timeout=30
+    )
+
+    data = response
+
+    # file_content = base64.b64decode(response['value'])
+    print(data)
 
     return response
 
@@ -65,6 +81,8 @@ def get_product_info(id):
         response_fix_price = send_request('InformationRegister_ЦеныНоменклатуры', f"Номенклатура_Key eq guid'{id}'")
 
         response_prices = send_request("Document_УстановкаЦенНоменклатуры")
+
+        response_promotions = send_request("Catalog_АвтоматическиеСкидки_НоменклатураГруппыЦеновыеГруппы")
         
         product = response_product.json()
         prices = response_prices.json().get('value')
@@ -72,6 +90,21 @@ def get_product_info(id):
         fix_price = response_fix_price.json().get('value')
 
         price = next((item for item in prices if item['Номенклатура_Key'] == product.get('Ref_Key')), None)
+
+        promotions = response_promotions.json().get('value')
+
+        promotion = next((item for item in promotions
+                          if(
+                              (item['ЗначениеУточнения'] == product.get('Ref_Key') 
+                               and item['ЗначениеУточнения_Type'] == 'StandardODATA.Catalog_Номенклатура') 
+                             or (item['ЗначениеУточнения'] == product.get('КатегорияНоменклатуры_Key') 
+                                 and item['ЗначениеУточнения_Type'] == 'StandardODATA.Catalog_КатегорииНоменклатуры')
+                             )
+                    ), None)
+        
+        # response_image = get_product_image(product['ФайлКартинки_Key'])
+
+        # print(response_image.content)
 
         if price is not None:
             product_data = {
@@ -90,6 +123,13 @@ def get_product_info(id):
                 'price': fix_price.get('Цена'),
                 'old_price': fix_price.get('Цена')
             }
+
+        if promotion is not None:
+            product_data['have_promotion'] = True
+            product_data['promotion'] = promotion['ЗначениеСкидкиНаценки']
+        else:
+            product_data['have_promotion'] = False
+            product_data['promotion'] = 0
 
         return product_data
             

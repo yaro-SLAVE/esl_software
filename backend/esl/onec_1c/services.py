@@ -15,3 +15,12 @@ class OneCService:
         )
         
         return response.json()
+    
+    def get_products_list(self, worker_id):
+        
+        response = requests.get(
+            f"http://flask-worker-{worker_id}.default.svc.cluster.local:5000/api/product",
+            timeout=30
+        )
+        
+        return response.json()
