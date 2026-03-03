@@ -3,6 +3,9 @@ import requests
 import os
 from dotenv import load_dotenv
 import base64
+import threading
+from datetime import datetime
+import time
 
 app = Flask(__name__)
 
@@ -16,7 +19,7 @@ ONEC_PASSWORD = os.getenv('ONEC_PASSWORD', '')
 def send_request(url, filter=None):
     if filter is not None:
         response = requests.get(
-            f"{ONEC_URL}/odata/standard.odata/{url}?$format=json&$filter={filter.replace(' ', '%20').replace("'", "'")}",
+            f"{ONEC_URL}/odata/standard.odata/{url}?$format=json&{filter.replace(' ', '%20').replace("'", "'")}",
             auth=(ONEC_LOGIN, ONEC_PASSWORD),
             timeout=30
         )
@@ -44,8 +47,25 @@ def get_product_image(image_id):
 
     return response
 
+def update_data_periodically():
+    while True:
+        try:
+            last_update = os.getenv('LAST_UPDATE', None)
+            if last_update is not None:
+                response_prices_updates = send_request('InformationRegister_ЦеныНоменклатуры', f"$expand=Номенклатура&$filter=Period ge datetime'{last_update}'")
+            else:
+                response_prices_updates = send_request('InformationRegister_ЦеныНоменклатуры', f"$expand=Номенклатура&$filter=Period ge datetime'{last_update}'")
+        except Exception as e:
+            pass
+        
+        time.sleep(300)
 
-@app.route('/api/product', methods=['GET'])
+def start_background_updater():
+    thread = threading.Thread(target=update_data_periodically, daemon=True)
+    thread.start()
+
+
+@app.route('/api/product/', methods=['GET'])
 def get_products_list():
     try:
         response_products = send_request("Catalog_Номенклатура")
@@ -57,7 +77,6 @@ def get_products_list():
             products_data.append({
                 'id': product.get('Ref_Key'),
                 'short_name': product.get('Description'),
-                'description': product.get('Комментарий'),
             })
 
         return products_data
@@ -73,56 +92,52 @@ def get_products_list():
             'message': f'Internal error: {str(e)}'
         }), 500
 
-@app.route('/api/product/<id>', methods=['GET'])
+@app.route('/api/product/<id>/', methods=['GET'])
 def get_product_info(id):
     try:
         response_product = send_request(f"Catalog_Номенклатура(guid'{id}')")
 
-        response_fix_price = send_request('InformationRegister_ЦеныНоменклатуры', f"Номенклатура_Key eq guid'{id}'")
+        response_prices = send_request('InformationRegister_ЦеныНоменклатуры', f"$filter=Номенклатура_Key eq guid'{id}'")
 
-        response_prices = send_request("Document_УстановкаЦенНоменклатуры")
-
-        response_promotions = send_request("Catalog_АвтоматическиеСкидки_НоменклатураГруппыЦеновыеГруппы")
+        response_promotions = send_request("Catalog_АвтоматическиеСкидки", f"$filter=(ДатаОкончания gt datetime'{datetime.now().isoformat()}' and ДатаНачала le datetime'{datetime.now().isoformat()}') and (Действует eq true) and (ЕстьУточненияПоКатегориям eq true or ЕстьУточненияПоНоменклатуре eq true)")
         
         product = response_product.json()
+
         prices = response_prices.json().get('value')
-        prices = prices[len(prices) - 1].get('Запасы')
-        fix_price = response_fix_price.json().get('value')
+        price = prices[len(prices) - 1]
 
-        price = next((item for item in prices if item['Номенклатура_Key'] == product.get('Ref_Key')), None)
+        actual_promotions = response_promotions.json().get('value')
 
-        promotions = response_promotions.json().get('value')
+        promotion = None
 
-        promotion = next((item for item in promotions
-                          if(
-                              (item['ЗначениеУточнения'] == product.get('Ref_Key') 
-                               and item['ЗначениеУточнения_Type'] == 'StandardODATA.Catalog_Номенклатура') 
-                             or (item['ЗначениеУточнения'] == product.get('КатегорияНоменклатуры_Key') 
-                                 and item['ЗначениеУточнения_Type'] == 'StandardODATA.Catalog_КатегорииНоменклатуры')
-                             )
-                    ), None)
+        if len(actual_promotions) > 0:
+            promotions = []
+
+            for promotion in actual_promotions:
+                for item in promotion['НоменклатураГруппыЦеновыеГруппы']:
+                    promotions.append(item)
+
+            promotion = next((item for item in promotions
+                if(
+                    (item['ЗначениеУточнения'] == product.get('Ref_Key') 
+                    and item['ЗначениеУточнения_Type'] == 'StandardODATA.Catalog_Номенклатура') 
+                    or (item['ЗначениеУточнения'] == product.get('КатегорияНоменклатуры_Key') 
+                        and item['ЗначениеУточнения_Type'] == 'StandardODATA.Catalog_КатегорииНоменклатуры')
+                    )
+                ), None)
+            
+            print(promotion)
         
         # response_image = get_product_image(product['ФайлКартинки_Key'])
 
         # print(response_image.content)
 
-        if price is not None:
-            product_data = {
-                'id': product.get('Ref_Key'),
-                'short_name': product.get('Description'),
-                'description': product.get('Комментарий'),
-                'price': price.get('Цена'),
-                'old_price': price.get('ЦенаСтарая')
-            }
-
-        else:
-            product_data = {
-                'id': product.get('Ref_Key'),
-                'short_name': product.get('Description'),
-                'description': product.get('Комментарий'),
-                'price': fix_price.get('Цена'),
-                'old_price': fix_price.get('Цена')
-            }
+        product_data = {
+            'id': product.get('Ref_Key'),
+            'short_name': product.get('Description'),
+            'description': product.get('Комментарий'),
+            'price': price.get('Цена')
+        }
 
         if promotion is not None:
             product_data['have_promotion'] = True
@@ -144,11 +159,11 @@ def get_product_info(id):
             'message': f'Internal error: {str(e)}'
         }), 500
 
-@app.route('/api/updates', methods=['GET'])
+@app.route('/api/updates/', methods=['GET'])
 def get_updates():
     pass
 
-@app.route('/api/company-info', methods=['GET'])
+@app.route('/api/company-info/', methods=['GET'])
 def get_company_info():
     try:
         company_info = {
@@ -156,9 +171,9 @@ def get_company_info():
             'filials': []
         }
 
-        response_companies = send_request('Catalog_Организации', "PredefinedDataName eq 'ОсновнаяОрганизация'")
+        response_companies = send_request('Catalog_Организации', "$filter=PredefinedDataName eq 'ОсновнаяОрганизация'")
 
-        response_filials = send_request('Catalog_СтруктурныеЕдиницы', "ТипСтруктурнойЕдиницы eq 'МагазинГруппаСкладов'")
+        response_filials = send_request('Catalog_СтруктурныеЕдиницы', "$filter=ТипСтруктурнойЕдиницы eq 'МагазинГруппаСкладов'")
 
         company = response_companies.json().get('value')[0]
         filials = response_filials.json().get('value')

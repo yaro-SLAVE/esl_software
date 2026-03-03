@@ -10,7 +10,7 @@ class CompanySerializer(serializers.ModelSerializer):
 
     class Meta:
         model=Company
-        fields=["id", "name", "administrators"]
+        fields=["id", "name"]
 
     def get_administrators(self, obj: Company):
         profiles = UserProfile.objects.filter(role="admin", company=obj).all()
@@ -21,7 +21,7 @@ class CompanyFilialSerializer(serializers.ModelSerializer):
 
     class Meta:
         model=CompanyFilial
-        fields="__all__"
+        fields=["id", "name"]
 
 class IntegrationSerializer(serializers.Serializer):
     company=serializers.IntegerField()
