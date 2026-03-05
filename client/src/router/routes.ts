@@ -1,6 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router';
 import FilialListPage from '../pages/filials/FilialListPage.vue';
-import FilialItemPage from '../pages/filials/FilialItemPage.vue';
+import FilialItemPage from '../pages/FilialItemPage.vue';
 import AuthorizationPage from '../pages/AuthorizationPage.vue';
 import ProfilePage from '../pages/ProfilePage.vue';
 import ProductShowPage from '../pages/ProductShowPage.vue'

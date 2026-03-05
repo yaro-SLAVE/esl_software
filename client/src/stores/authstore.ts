@@ -56,41 +56,6 @@ const useUserProfileStore = defineStore("UserProfileStore", () => {
         }
     }
 
-    async function registry(
-        username: string, 
-        password: string,
-        first_name: string,
-        last_name: string,
-        email: string,
-        role: number
-    ) {
-        try {
-            const userData = new FormData();
-            userData.append('username', username);
-            userData.append('password', password);
-            userData.append('first_name', first_name);
-            userData.append('last_name', last_name);
-
-            console.log(email);
-            if (email !== undefined) {
-                userData.append('email', email);
-            }
-
-            const user = (await axios.post("/api/user/", userData)).data;
-
-            const profData = new FormData();
-            profData.append('user', String(user.id));
-            profData.append('role', String(role));
-
-            // const profile = (await axios.post("/api/profile/", profData));
-
-            return true;
-        } catch(error) {
-            console.error(error);
-            return false;
-        }
-    }
-
     async function logout() {
         const refreshCopy = refresh.value;
         refresh.value = undefined;
@@ -173,7 +138,7 @@ const useUserProfileStore = defineStore("UserProfileStore", () => {
         });
     }, 120000);
 
-    return {userProf, jwt, is_auth, login, logout, getUserInfo, registry, getAuthInfo};
+    return {userProf, jwt, is_auth, login, logout, getUserInfo, getAuthInfo};
 });
 
 export default useUserProfileStore;

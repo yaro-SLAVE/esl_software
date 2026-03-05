@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import requests
 import os
 from dotenv import load_dotenv
@@ -14,6 +14,10 @@ load_dotenv()
 ONEC_URL = os.getenv('ONEC_URL', '')
 ONEC_LOGIN = os.getenv('ONEC_LOGIN', '')
 ONEC_PASSWORD = os.getenv('ONEC_PASSWORD', '')
+
+@staticmethod
+def get_main_server_url():
+    return 'http://localhost:8000'
 
 @staticmethod
 def send_request(url, filter=None):
@@ -47,18 +51,144 @@ def get_product_image(image_id):
 
     return response
 
+@staticmethod
+def get_updates_by_responses(response_prices_updates, response_promotions, response_ends_promotions, response_products_updates):
+    response_products = send_request("Catalog_Номенклатура")
+        
+    products = response_products.json().get('value')
+    prices_updates = response_prices_updates.json().get('value')
+    actual_promotions = response_promotions.json().get('value')
+    ends_promotions = [] if response_ends_promotions == [] else response_ends_promotions.json().get('value')
+    products_updates = response_products_updates.json().get('value')
+
+    updates = []
+
+    for item in prices_updates:
+        if next((a for a in updates if a['id'] == item['Номенклатура']['Ref_Key']), None) is None:            
+            updates.append({
+                "id": item['Номенклатура']['Ref_Key'],
+                "price": item['Цена']
+            })
+
+    for product in products_updates:
+        update_num = next((i for i, obj in enumerate(updates) if obj['id'] == product['Ref_Key']), None)
+        if update_num is not None:
+            updates[update_num]['short_name'] = product['Description']
+        else:
+            updates.append({
+                "id": product['Ref_Key'],
+                "short_name": product['Description']
+            })
+    
+    actual_promotions_list = []
+    for promotion in actual_promotions:
+        for item in promotion['НоменклатураГруппыЦеновыеГруппы']:
+            actual_promotions_list.append(item)
+
+    ends_promotions_list = []
+    for promotion in ends_promotions:
+        for item in promotion['НоменклатураГруппыЦеновыеГруппы']:
+            ends_promotions_list.append(item)
+
+    for promotion in actual_promotions_list:
+        if promotion['ЗначениеУточнения_Type'] == 'StandardODATA.Catalog_Номенклатура':
+            update_num = next((i for i, obj in enumerate(updates) if obj['id'] == promotion['ЗначениеУточнения']), None)
+            if update_num is not None:
+                updates[update_num]['have_promotion'] = True
+                updates[update_num]['promotion'] = promotion['ЗначениеСкидкиНаценки']
+
+            else:
+                updates.append({
+                    "id": promotion['ЗначениеУточнения'],
+                    "have_promotion": True,
+                    "promotion": promotion['ЗначениеСкидкиНаценки']
+                })
+
+        elif promotion['ЗначениеУточнения_Type'] == 'StandardODATA.Catalog_КатегорииНоменклатуры':
+            promotion_products = [product for product in products if product['КатегорияНоменклатуры_Key'] == promotion['ЗначениеУточнения']]
+
+            for product in promotion_products:
+                update_num = next((i for i, obj in enumerate(updates) if obj['id'] == product['Ref_Key']), None)
+                if update_num is not None:
+                    updates[update_num]['have_promotion'] = True
+                    updates[update_num]['promotion'] = promotion['ЗначениеСкидкиНаценки']
+
+                else:
+                    updates.append({
+                        "id": product['Ref_Key'],
+                        "have_promotion": True,
+                        "promotion": promotion['ЗначениеСкидкиНаценки']
+                    })
+
+    for promotion in ends_promotions_list:
+        if promotion['ЗначениеУточнения_Type'] == 'StandardODATA.Catalog_Номенклатура':
+            update_num = next((i for i, obj in enumerate(updates) if obj['id'] == promotion['ЗначениеУточнения']), None)
+            if update_num is not None:
+                updates[update_num]['have_promotion'] = False
+                updates[update_num]['promotion'] = 0
+
+            else:
+                updates.append({
+                    "id": promotion['ЗначениеУточнения'],
+                    "have_promotion": False,
+                    "promotion": 0
+                })
+
+        elif promotion['ЗначениеУточнения_Type'] == 'StandardODATA.Catalog_КатегорииНоменклатуры':
+            promotion_products = [product for product in products if product['КатегорияНоменклатуры_Key'] == promotion['ЗначениеУточнения']]
+
+            for product in promotion_products:
+                update_num = next((i for i, obj in enumerate(updates) if obj['id'] == product['Ref_Key']), None)
+                if update_num is not None:
+                    updates[update_num]['have_promotion'] = False
+                    updates[update_num]['promotion'] = 0
+
+                else:
+                    updates.append({
+                        "id": product['Ref_Key'],
+                        "have_promotion": False,
+                        "promotion": 0
+                    })
+
+    return updates
+
 def update_data_periodically():
     while True:
         try:
-            last_update = os.getenv('LAST_UPDATE', None)
-            if last_update is not None:
-                response_prices_updates = send_request('InformationRegister_ЦеныНоменклатуры', f"$expand=Номенклатура&$filter=Period ge datetime'{last_update}'")
+            last_update = os.getenv('LAST_UPDATE', '')
+            if last_update != '':
+                os.environ['LAST_UPDATE'] = datetime.now().isoformat()
+            
             else:
-                response_prices_updates = send_request('InformationRegister_ЦеныНоменклатуры', f"$expand=Номенклатура&$filter=Period ge datetime'{last_update}'")
+                response_prices_updates = send_request('InformationRegister_ЦеныНоменклатуры', f"$orderby=Period desc&$expand=Номенклатура&$filter=Period ge datetime'{last_update}'")
+                response_promotions = send_request("Catalog_АвтоматическиеСкидки", f"$filter=((ДатаОкончания gt datetime'{datetime.now().isoformat()}' and ДатаНачала le datetime'{datetime.now().isoformat()}') and (Действует eq true) and (ЕстьУточненияПоКатегориям eq true or ЕстьУточненияПоНоменклатуре eq true)) and (ДатаНачала gt datetime'{last_update}')")
+                response_ends_promotions = send_request("Catalog_АвтоматическиеСкидки", f"$filter=((ДатаОкончания gt datetime'{last_update}' and ДатаНачала lt datetime'{last_update}') and (ЕстьУточненияПоКатегориям eq true or ЕстьУточненияПоНоменклатуре eq true)) and (ДатаОкончания lt datetime'{datetime.now().isoformat()}')")
+                response_products_updates = send_request("Catalog_Номенклатура", f"ДатаИзменения ge datetime'{last_update}'")
+
+                updates = get_updates_by_responses(response_prices_updates, response_promotions, response_ends_promotions, response_products_updates)
+                            
+                # response = requests.post(
+                #     f"{get_main_server_url}/api/product/",
+                #     json=updates,
+                #     headers={'Content-Type': 'application/json'},
+                # )
+
+                print(updates)
+                    
+                os.environ['LAST_UPDATE'] = datetime.now().isoformat()
+
+        except requests.exceptions.RequestException as e:
+            return jsonify({
+                'status': 'error',
+                'message': f'Error connecting to 1C: {str(e)}'
+            }), 503
         except Exception as e:
-            pass
+            return jsonify({
+                'status': 'error',
+                'message': f'Internal error: {str(e)}'
+            }), 500
         
-        time.sleep(300)
+        time.sleep(60)
 
 def start_background_updater():
     thread = threading.Thread(target=update_data_periodically, daemon=True)
@@ -125,8 +255,6 @@ def get_product_info(id):
                         and item['ЗначениеУточнения_Type'] == 'StandardODATA.Catalog_КатегорииНоменклатуры')
                     )
                 ), None)
-            
-            print(promotion)
         
         # response_image = get_product_image(product['ФайлКартинки_Key'])
 
@@ -161,7 +289,36 @@ def get_product_info(id):
 
 @app.route('/api/updates/', methods=['GET'])
 def get_updates():
-    pass
+    try:
+        is_first_update = request.args.get('is_first_update', default=False, type=bool) 
+        last_update = os.getenv('LAST_FORCE_UPDATE', '')
+        if is_first_update or last_update == '':
+            response_prices_updates = send_request('InformationRegister_ЦеныНоменклатуры', f"$orderby=Period desc&$expand=Номенклатура")
+            response_promotions = send_request("Catalog_АвтоматическиеСкидки", f"$filter=(ДатаОкончания gt datetime'{datetime.now().isoformat()}' and ДатаНачала le datetime'{datetime.now().isoformat()}') and (Действует eq true) and (ЕстьУточненияПоКатегориям eq true or ЕстьУточненияПоНоменклатуре eq true)")
+            response_ends_promotions = []        
+            response_products_updates = send_request("Catalog_Номенклатура")
+        else:
+            response_prices_updates = send_request('InformationRegister_ЦеныНоменклатуры', f"$orderby=Period desc&$expand=Номенклатура&$filter=Period ge datetime'{last_update}'")
+            response_promotions = send_request("Catalog_АвтоматическиеСкидки", f"$filter=((ДатаОкончания gt datetime'{datetime.now().isoformat()}' and ДатаНачала le datetime'{datetime.now().isoformat()}') and (Действует eq true) and (ЕстьУточненияПоКатегориям eq true or ЕстьУточненияПоНоменклатуре eq true)) and (ДатаНачала gt datetime'{last_update}')")
+            response_ends_promotions = send_request("Catalog_АвтоматическиеСкидки", f"$filter=((ДатаОкончания gt datetime'{last_update}' and ДатаНачала lt datetime'{last_update}') and (ЕстьУточненияПоКатегориям eq true or ЕстьУточненияПоНоменклатуре eq true)) and (ДатаОкончания lt datetime'{datetime.now().isoformat()}')")
+            response_products_updates = send_request("Catalog_Номенклатура", f"ДатаИзменения ge datetime'{last_update}'")
+
+        updates = get_updates_by_responses(response_prices_updates, response_promotions, response_ends_promotions, response_products_updates)
+            
+        os.environ['LAST_FORCE_UPDATE'] = datetime.now().isoformat()
+
+        return updates
+
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Error connecting to 1C: {str(e)}'
+        }), 503
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Internal error: {str(e)}'
+        }), 500
 
 @app.route('/api/company-info/', methods=['GET'])
 def get_company_info():
@@ -204,4 +361,6 @@ def get_company_info():
         }), 500
 
 if __name__ == '__main__':
+    start_background_updater()
+
     app.run(host='0.0.0.0', port=5000, debug=False)
