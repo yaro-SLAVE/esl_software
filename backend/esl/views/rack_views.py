@@ -147,9 +147,12 @@ class ProductViewset(
             return ProductShowSerializer
         else:
             return ProductSerializer
+        
+    @action(detail=False, methods=['POST'], url_path='update')
+    def product_info_update(self, request):
+        print(request.data)
 
-    # @action(['GET'], url_path=r"show/(?P<barcode>[a-z0-9]+)", detail=False)
-    # def show_product(self, request, barcode): 
-    #     product = self.get_queryset().get(barcode=barcode)
-    #     serializer = self.get_serializer(product)
-    #     return Response(serializer.data)
+
+    @action(['GET'], url_path=r"show/(?P<barcode>[a-z0-9]+)", detail=False)
+    def show_product(self, request, barcode): 
+        print(barcode)

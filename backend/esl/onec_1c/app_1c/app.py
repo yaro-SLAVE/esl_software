@@ -75,9 +75,13 @@ def get_updates_by_responses(response_prices_updates, response_promotions, respo
         if update_num is not None:
             updates[update_num]['short_name'] = product['Description']
         else:
+            prices = send_request("InformationRegister_ЦеныНоменклатуры", f"$filter=Номенклатура_Key eq guid'{product['Ref_Key']}'").json().get('value')
+            price = prices[len(prices) - 1]
+
             updates.append({
                 "id": product['Ref_Key'],
-                "short_name": product['Description']
+                "short_name": product['Description'],
+                "price": price['Цена']
             })
     
     actual_promotions_list = []
@@ -156,39 +160,34 @@ def update_data_periodically():
     while True:
         try:
             last_update = os.getenv('LAST_UPDATE', '')
-            if last_update != '':
+            if last_update == '':
                 os.environ['LAST_UPDATE'] = datetime.now().isoformat()
             
             else:
                 response_prices_updates = send_request('InformationRegister_ЦеныНоменклатуры', f"$orderby=Period desc&$expand=Номенклатура&$filter=Period ge datetime'{last_update}'")
                 response_promotions = send_request("Catalog_АвтоматическиеСкидки", f"$filter=((ДатаОкончания gt datetime'{datetime.now().isoformat()}' and ДатаНачала le datetime'{datetime.now().isoformat()}') and (Действует eq true) and (ЕстьУточненияПоКатегориям eq true or ЕстьУточненияПоНоменклатуре eq true)) and (ДатаНачала gt datetime'{last_update}')")
                 response_ends_promotions = send_request("Catalog_АвтоматическиеСкидки", f"$filter=((ДатаОкончания gt datetime'{last_update}' and ДатаНачала lt datetime'{last_update}') and (ЕстьУточненияПоКатегориям eq true or ЕстьУточненияПоНоменклатуре eq true)) and (ДатаОкончания lt datetime'{datetime.now().isoformat()}')")
-                response_products_updates = send_request("Catalog_Номенклатура", f"ДатаИзменения ge datetime'{last_update}'")
+                response_products_updates = send_request("Catalog_Номенклатура", f"$filter=ДатаИзменения ge datetime'{last_update}'")
 
                 updates = get_updates_by_responses(response_prices_updates, response_promotions, response_ends_promotions, response_products_updates)
-                            
-                # response = requests.post(
-                #     f"{get_main_server_url}/api/product/",
-                #     json=updates,
-                #     headers={'Content-Type': 'application/json'},
-                # )
-
-                print(updates)
-                    
                 os.environ['LAST_UPDATE'] = datetime.now().isoformat()
 
+                if len(updates) > 0:                            
+                    print(updates)
+                    # response = requests.post(
+                    #     f"{get_main_server_url}/api/product/update/",
+                    #     data=updates,
+                    #     headers={'Content-Type': 'application/json'},
+                    # )
+
+                    # print(response.status_code)
+
         except requests.exceptions.RequestException as e:
-            return jsonify({
-                'status': 'error',
-                'message': f'Error connecting to 1C: {str(e)}'
-            }), 503
+            pass
         except Exception as e:
-            return jsonify({
-                'status': 'error',
-                'message': f'Internal error: {str(e)}'
-            }), 500
+            pass
         
-        time.sleep(60)
+        time.sleep(15)
 
 def start_background_updater():
     thread = threading.Thread(target=update_data_periodically, daemon=True)
@@ -301,7 +300,7 @@ def get_updates():
             response_prices_updates = send_request('InformationRegister_ЦеныНоменклатуры', f"$orderby=Period desc&$expand=Номенклатура&$filter=Period ge datetime'{last_update}'")
             response_promotions = send_request("Catalog_АвтоматическиеСкидки", f"$filter=((ДатаОкончания gt datetime'{datetime.now().isoformat()}' and ДатаНачала le datetime'{datetime.now().isoformat()}') and (Действует eq true) and (ЕстьУточненияПоКатегориям eq true or ЕстьУточненияПоНоменклатуре eq true)) and (ДатаНачала gt datetime'{last_update}')")
             response_ends_promotions = send_request("Catalog_АвтоматическиеСкидки", f"$filter=((ДатаОкончания gt datetime'{last_update}' and ДатаНачала lt datetime'{last_update}') and (ЕстьУточненияПоКатегориям eq true or ЕстьУточненияПоНоменклатуре eq true)) and (ДатаОкончания lt datetime'{datetime.now().isoformat()}')")
-            response_products_updates = send_request("Catalog_Номенклатура", f"ДатаИзменения ge datetime'{last_update}'")
+            response_products_updates = send_request("Catalog_Номенклатура", f"$filter=ДатаИзменения ge datetime'{last_update}'")
 
         updates = get_updates_by_responses(response_prices_updates, response_promotions, response_ends_promotions, response_products_updates)
             

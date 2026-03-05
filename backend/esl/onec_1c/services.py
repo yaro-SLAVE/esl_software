@@ -1,5 +1,5 @@
 # import requests
-from onec_1c.dataclasses import *
+from esl.onec_1c.dataclasses import *
 import requests
 
 def get_worker_url(worker_id: str):
