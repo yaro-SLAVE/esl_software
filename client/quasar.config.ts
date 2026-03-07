@@ -68,6 +68,7 @@ export default defineConfig((/* ctx */) => {
       vitePlugins: [
         ['vite-plugin-checker', {
           vueTsc: true,
+          overlay: false,
           eslint: {
             lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{ts,js,mjs,cjs,vue}"',
             useFlatConfig: true
@@ -81,6 +82,9 @@ export default defineConfig((/* ctx */) => {
       // https: true,
       open: false, // opens browser window automatically
       port: 5173,
+      client: {
+        overlay: false,
+      },
       proxy: {
         "/api": {
           target: 'http://localhost:8000',

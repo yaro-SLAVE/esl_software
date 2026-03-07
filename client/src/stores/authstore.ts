@@ -11,7 +11,7 @@ const $q = useQuasar();
 
 const router = useRouter();
 
-const useUserProfileStore = defineStore("UserProfileStore", () => {
+const useAuthStore = defineStore("AuthStore", () => {
     type Tokens = {
         access: string;
         refresh: string;
@@ -21,10 +21,10 @@ const useUserProfileStore = defineStore("UserProfileStore", () => {
     
     const userProf = ref<User>();
 
-    const jwt = ref<Token>($q.localStorage.getItem('jwt') as string || '');
-    const refresh = ref<Token>($q.localStorage.getItem('refresh') as string || '');
+    const jwt = ref<Token>(localStorage.getItem('jwt') as string || '');
+    const refresh = ref<Token>(localStorage.getItem('refresh') as string || '');
 
-    const is_auth = ref<boolean>($q.localStorage.getItem('authorization') || false);
+    const is_auth = ref<boolean>(Boolean(localStorage.getItem('authorization')) || false);
 
     function isTokenValid(token: Token): boolean {
         if (token === undefined) {
@@ -47,7 +47,9 @@ const useUserProfileStore = defineStore("UserProfileStore", () => {
             jwt.value = result.access;
             refresh.value = result.refresh;
 
-            await getAuthInfo();
+            await getUserInfo();
+
+            is_auth.value = true;
 
             return true;
         } catch(error){
@@ -100,7 +102,7 @@ const useUserProfileStore = defineStore("UserProfileStore", () => {
     async function getUserInfo() {
         if (await updateTokens()) {
             try {
-                userProf.value = (await axios.get<User>("/api/profile/info/", {
+                userProf.value = (await axios.get<User>("/api/user/self-info/", {
                     headers: {
                         Authorization: `Bearer ${jwt.value}`
                     },
@@ -111,24 +113,7 @@ const useUserProfileStore = defineStore("UserProfileStore", () => {
         }
     }
 
-    async function getAuthInfo() {
-        if (await updateTokens()) {
-            try {
-                const data = (await axios.get("/api/user/auth_info/", {
-                    headers: {
-                        Authorization: `Bearer ${jwt.value}`
-                    },
-                })).data;
-
-                is_auth.value = data["is_auth"];
-            } catch(error) {
-                console.error("Ошибка при получении инфы об авторизации пользователя", error);
-            }
-        }
-    }
-
     onBeforeMount(async () => {
-        await getAuthInfo();
         await getUserInfo();
     });
 
@@ -138,7 +123,7 @@ const useUserProfileStore = defineStore("UserProfileStore", () => {
         });
     }, 120000);
 
-    return {userProf, jwt, is_auth, login, logout, getUserInfo, getAuthInfo};
+    return {userProf, jwt, is_auth, login, logout, getUserInfo};
 });
 
-export default useUserProfileStore;
+export default useAuthStore;

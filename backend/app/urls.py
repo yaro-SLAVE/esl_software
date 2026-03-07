@@ -31,8 +31,10 @@ from rest_framework_simplejwt.views import (
 
 from esl.views.rack_views import RackViewset, ProductViewset, ProductUpdateViewset
 from esl.views.company_views import CompanyViewset, CompanyFilialViewset, IntegrationViewset
+from esl.views.auth_views import UserProfileViewset
 
 router = DefaultRouter()
+router.register("user", UserProfileViewset, basename="user")
 router.register("rack", RackViewset, basename="rack")
 router.register("product", ProductViewset, basename="product")
 router.register("company", CompanyViewset, basename="company")

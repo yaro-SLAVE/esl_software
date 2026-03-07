@@ -3,9 +3,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import ListModelMixin, CreateModelMixin, DestroyModelMixin, RetrieveModelMixin, UpdateModelMixin
 
-from backend.esl.models.company import *
+from esl.models.company import *
 
 from esl.serializers.auth_serializers import *
+from rest_framework.response import Response
 
 class UserProfileViewset(
     GenericViewSet
@@ -18,7 +19,9 @@ class UserProfileViewset(
         return super().get_queryset().filter(user=self.request.user).prefetch_related("user")
 
     @action(detail=False, url_path="self-info", methods=["get"])
-    async def get_self(self, request, *args, **kwargs):
+    def get_self(self, request, *args, **kwargs):
         profile = self.get_queryset().first()
+        print(profile.user)
         serializer = self.get_serializer(profile)
+        print(serializer.data)
         return Response(serializer.data)

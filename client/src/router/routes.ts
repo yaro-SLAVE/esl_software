@@ -1,29 +1,30 @@
 import type { RouteRecordRaw } from 'vue-router';
-import FilialListPage from '../pages/filials/FilialListPage.vue';
+import FilialsListPage from '../pages/FilialsListPage.vue';
 import FilialItemPage from '../pages/FilialItemPage.vue';
 import AuthorizationPage from '../pages/AuthorizationPage.vue';
 import ProfilePage from '../pages/ProfilePage.vue';
 import ProductShowPage from '../pages/ProductShowPage.vue'
+import IndexPage from "../pages/IndexPage.vue"
 
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => FilialItemPage  }], //import('pages/IndexPage.vue')
+    children: [{ path: '', component: () => IndexPage  }],
   },
 
   {
     path: '/filials',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => FilialListPage },
+      { path: '', component: () => FilialsListPage },
       { path: '/:id', component: () => FilialItemPage }
     ],
   },
 
   {
-    path: '/authorization',
-    component: () => import('layouts/MainLayout.vue'),
+    path: '/login',
+    component: () => import('layouts/EmptyLayout.vue'),
     children: [
       { path: '', component: () => AuthorizationPage},
     ],
@@ -38,7 +39,7 @@ const routes: RouteRecordRaw[] = [
   },
 
   {
-    path: '/product/:barcode',
+    path: '/product/:company_id/:product_id',
     component: () => ProductShowPage,
   },
 

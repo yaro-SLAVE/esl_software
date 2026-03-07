@@ -8,9 +8,10 @@ const route = useRoute();
 const product = ref();
 
 async function getProduct() {
-    const barcode = route.params.barcode;
+    const company_id = route.params.company_id;
+    const product_id = route.params.product_id;
 
-    const r = await axios.get(`/api/product/show/${barcode}/`);
+    const r = await axios.get(`/api/product/show/${company_id}/${product_id}/`);
 
     product.value = r.data;
 
