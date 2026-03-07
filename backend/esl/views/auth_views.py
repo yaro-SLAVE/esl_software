@@ -21,7 +21,5 @@ class UserProfileViewset(
     @action(detail=False, url_path="self-info", methods=["get"])
     def get_self(self, request, *args, **kwargs):
         profile = self.get_queryset().first()
-        print(profile.user)
         serializer = self.get_serializer(profile)
-        print(serializer.data)
         return Response(serializer.data)

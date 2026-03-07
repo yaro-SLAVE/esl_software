@@ -1,12 +1,13 @@
 export type User = {
     is_superuser: boolean;
     username: string;
-    first_name: string;
-    last_name: string;
-    role: string;
-    role_description: string;
-    logo: string;
-    group: string;
-    total_scores: number;
-    email: string;
+    first_name: string | undefined;
+    last_name: string | undefined;
 };
+
+export type UserProfiel = {
+    user: User,
+    role: string,
+    company_id: number | undefined,
+    filial_id: number | undefined,
+}
