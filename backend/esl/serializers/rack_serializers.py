@@ -84,3 +84,13 @@ class ProductShowSerializer(serializers.ModelSerializer):
     class Meta:
         model=Product
         fields=['short_name', 'description', 'price', 'prev_price', 'have_promotion', 'barcode']
+
+class UpdateProductSerializer(serializers.Serializer):
+    class UpdateProductItemSerializer(serializers.Serializer):
+        id = serializers.CharField()
+        short_name = serializers.CharField(required=False, allow_null=True, default=None)
+        have_promotion = serializers.BooleanField(required=False, allow_null=True, default=None)
+        promotion = serializers.IntegerField(required=False, allow_null=True, default=None)
+        price = serializers.FloatField(required=False, allow_null=True, default=None)
+
+    updates = UpdateProductItemSerializer(many=True)

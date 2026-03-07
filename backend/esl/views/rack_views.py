@@ -147,12 +147,35 @@ class ProductViewset(
             return ProductShowSerializer
         else:
             return ProductSerializer
-        
-    @action(detail=False, methods=['POST'], url_path='update')
-    def product_info_update(self, request):
-        print(request.data)
-
 
     @action(['GET'], url_path=r"show/(?P<barcode>[a-z0-9]+)", detail=False)
     def show_product(self, request, barcode): 
         print(barcode)
+
+class ProductUpdateViewset(
+    CreateModelMixin,
+    GenericViewSet
+):
+    queryset=Product.objects.all()
+    serializer_class=UpdateProductSerializer
+
+    def create(self, request, *args, **kwargs):
+        updates = request.data['updates']
+
+        if len(updates) > 0:
+            pass
+                
+        return Response(200)
+
+    async def send_to_esl(self, data, token, esl_ip):
+        async with ClientSession() as client:
+            try:
+                response = await send_product(
+                    client, 
+                    data,
+                    token,
+                    esl_ip
+                )
+                return response
+            except ClientResponseError as e:
+                print(f"Error sending to ESL: {e}")

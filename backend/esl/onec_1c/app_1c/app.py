@@ -6,6 +6,7 @@ import base64
 import threading
 from datetime import datetime
 import time
+import json
 
 app = Flask(__name__)
 
@@ -17,7 +18,7 @@ ONEC_PASSWORD = os.getenv('ONEC_PASSWORD', '')
 
 @staticmethod
 def get_main_server_url():
-    return 'http://localhost:8000'
+    return 'http://127.0.0.1:8000'
 
 @staticmethod
 def send_request(url, filter=None):
@@ -67,7 +68,7 @@ def get_updates_by_responses(response_prices_updates, response_promotions, respo
         if next((a for a in updates if a['id'] == item['Номенклатура']['Ref_Key']), None) is None:            
             updates.append({
                 "id": item['Номенклатура']['Ref_Key'],
-                "price": item['Цена']
+                "price": float(item['Цена'])
             })
 
     for product in products_updates:
@@ -81,7 +82,7 @@ def get_updates_by_responses(response_prices_updates, response_promotions, respo
             updates.append({
                 "id": product['Ref_Key'],
                 "short_name": product['Description'],
-                "price": price['Цена']
+                "price": float(price['Цена'])
             })
     
     actual_promotions_list = []
@@ -157,6 +158,16 @@ def get_updates_by_responses(response_prices_updates, response_promotions, respo
     return updates
 
 def update_data_periodically():
+    session = requests.Session()
+    # Настройка сессии
+    adapter = requests.adapters.HTTPAdapter(
+        pool_connections=10,
+        pool_maxsize=10,
+        max_retries=3,
+        pool_block=False
+    )
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
     while True:
         try:
             last_update = os.getenv('LAST_UPDATE', '')
@@ -174,20 +185,21 @@ def update_data_periodically():
 
                 if len(updates) > 0:                            
                     print(updates)
-                    # response = requests.post(
-                    #     f"{get_main_server_url}/api/product/update/",
-                    #     data=updates,
-                    #     headers={'Content-Type': 'application/json'},
-                    # )
+                    # data = json.loads({'updates': updates})
+                    response = session.post(
+                        f"{get_main_server_url()}/api/product-update/",
+                        json={'updates': updates},
+                        headers={'Content-Type': 'application/json'},
+                    )
 
-                    # print(response.status_code)
+                    print(response.status_code)
 
         except requests.exceptions.RequestException as e:
-            pass
+            print(e)
         except Exception as e:
-            pass
+            print(e)
         
-        time.sleep(15)
+        time.sleep(5)
 
 def start_background_updater():
     thread = threading.Thread(target=update_data_periodically, daemon=True)
