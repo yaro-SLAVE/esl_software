@@ -221,13 +221,23 @@ paths:
         '400':
           description: Ошибка в запросе
 
+    get:
+      tags:
+        - esl
+      summary: Получение списка устройств
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Ошибка в запросе
+
   /api/esl/error/:
     post:
       tags:
         - esl
       security:
         - bearer: []
-      summary: Создание нового филиала
+      summary: Создание ошибки
       requestBody:
         required: true
         content:

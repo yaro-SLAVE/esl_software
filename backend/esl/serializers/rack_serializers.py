@@ -73,17 +73,21 @@ class RackSerializer(serializers.ModelSerializer):
         fields="__all__"
 
 class ProductSerializer(serializers.ModelSerializer):
-    rack=RackSerializer()
-
     class Meta:
         model=Product
         fields=['id', 'short_name', 'external_id', 'rack']
 
-class ProductShowSerializer(serializers.ModelSerializer):
+class ProductShowSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    short_name = serializers.CharField()
+    description = serializers.CharField()
+    price = serializers.FloatField()
+    have_promotion = serializers.BooleanField()
+    promotion = serializers.IntegerField()
 
-    class Meta:
-        model=Product
-        fields=['short_name', 'description', 'price', 'prev_price', 'have_promotion', 'barcode']
+class ProductsExternalListSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    short_name = serializers.CharField()
 
 class UpdateProductSerializer(serializers.Serializer):
     class UpdateProductItemSerializer(serializers.Serializer):

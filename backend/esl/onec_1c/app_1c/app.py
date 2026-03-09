@@ -187,7 +187,7 @@ def update_data_periodically():
                     print(updates)
                     # data = json.loads({'updates': updates})
                     response = session.post(
-                        f"{get_main_server_url()}/api/product-update/",
+                        f"{get_main_server_url()}/api/product/update/",
                         json={'updates': updates},
                         headers={'Content-Type': 'application/json'},
                     )

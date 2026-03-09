@@ -7,6 +7,7 @@ from rest_framework.mixins import ListModelMixin, CreateModelMixin, DestroyModel
 from esl.models.company import *
 from esl.models.rack import *
 from esl.models.esl import *
+from esl.models.profile import *
 
 from esl.serializers.rack_serializers import *
 
@@ -20,6 +21,8 @@ from rest_framework.response import Response
 from esl.onec_esl.api.product import send_product, ESLResponse
 
 import asyncio
+
+from esl.onec_1c.services import get_products_list, get_product_info
 
 
 class RackViewset(
@@ -145,25 +148,45 @@ class ProductViewset(
     def get_serializer_class(self):
         if self.action == 'show_product':
             return ProductShowSerializer
+        elif self.action == 'products_update':
+            return UpdateProductSerializer
+        elif self.action == 'get_external_list':
+            return ProductsExternalListSerializer
         else:
             return ProductSerializer
 
-    @action(['GET'], url_path=r"show/(?P<barcode>[a-z0-9]+)", detail=False)
-    def show_product(self, request, barcode): 
-        print(barcode)
+    @action(['GET'], url_path="external", detail=False)    
+    def get_external_list(self, request, *args, **kwargs):
+        # userprofile = UserProfile.objects.filter(user = self.request.user).first()
+        
+        products_list = get_products_list('')
+        serializer = self.get_serializer(products_list, many=True)
 
-class ProductUpdateViewset(
-    CreateModelMixin,
-    GenericViewSet
-):
-    queryset=Product.objects.all()
-    serializer_class=UpdateProductSerializer
+        return Response(data=serializer.data, status=200)
 
-    def create(self, request, *args, **kwargs):
+    @action(['GET'], url_path="show", detail=False)
+    def show_product(self, request): 
+        company_id = request.GET.get('company', None)
+        product_id = request.GET.get('product', None)
+        # company = Company.objects.filter(pk = company_id).first()
+
+        product_info = get_product_info('', product_id)
+
+        serializer = self.get_serializer(product_info)
+
+        return Response(data=serializer.data, status=200)
+
+    @action(['POST'], url_path="update", detail=False)
+    def products_update(self, request, *args, **kwargs):
         updates = request.data['updates']
 
         if len(updates) > 0:
             pass
+                
+        return Response(200)
+    
+    @action(['GET'], url_path="update", detail=False)
+    def products_update_force(self, request, *args, **kwargs):
                 
         return Response(200)
 

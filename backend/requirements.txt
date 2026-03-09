@@ -11,3 +11,4 @@ pillow==12.0.0
 redis
 django-redis==6.0.0
 kubernetes
+marshmallow_dataclass==8.7.1
