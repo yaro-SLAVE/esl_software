@@ -32,3 +32,6 @@ class ESLViewset(
             return ESLCreateSerializer
         else:
             return ESLSerializer
+
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)

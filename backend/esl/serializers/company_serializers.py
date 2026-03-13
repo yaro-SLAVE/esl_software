@@ -23,8 +23,14 @@ class CompanyFilialSerializer(serializers.ModelSerializer):
         model=CompanyFilial
         fields=["id", "name"]
 
-class IntegrationSerializer(serializers.Serializer):
-    company=serializers.IntegerField()
+class IntegrationCretaeSerializer(serializers.Serializer):
     login=serializers.CharField()
     password=serializers.CharField()
     url=serializers.CharField()
+    type=serializers.CharField()
+
+class IntegrationSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model=Company
+        fields=['id', 'integration_type', 'integration_url']

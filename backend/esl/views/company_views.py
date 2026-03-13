@@ -9,7 +9,7 @@ from esl.models.company import *
 
 from esl.serializers.company_serializers import *
 
-from esl.onec_1c.services import *
+from esl.onec_1c.services import get_filial_info, get_company_info
 
 from esl.onec_1c.app_1c.services.k8s_service import *
 
@@ -27,34 +27,30 @@ class CompanyViewset(
         userprofile = UserProfile.objects.filter(user = self.request.user).first()
         return super().get_queryset().filter(pk = userprofile.company.pk).first()
     
-    @action(detail=False, methods=['GET'], url_path='update')
-    def update_company_info(self, request):
+    def list(self, request, *args, **kwargs):
         company = self.get_queryset()
         company_info = {}
 
-        try:
-            company_info = get_company_info(company.container_id)
+        company_info = get_company_info(company.container_id)
 
-            new_company, created = Company.objects.get_or_create(
-                external_id = company_info['company']['id']
+        new_company, created = Company.objects.get_or_create(
+            external_id = company_info['company']['id']
+        )
+
+        new_company.name = company_info['company']['name']
+        new_company.save()
+
+        for filial in company_info['filials']:
+            new_filial, created = CompanyFilial.objects.get_or_create(
+                external_id = filial['id']
             )
 
-            new_company.name = company_info['company']['name']
-            new_company.save()
+            new_filial.name = filial['name']
+            new_filial.save()
 
-            for filial in company_info['filials']:
-                new_filial, created = CompanyFilial.objects.get_or_create(
-                    external_id = filial['id']
-                )
+        print(company_info)
 
-                new_filial.name = filial['name']
-                new_filial.save()
-
-            print(company_info)
-
-            return company_info
-        except Exception as e:
-            print(f"error {e}")
+        return company_info
 
 class CompanyFilialViewset(
     GenericViewSet,
@@ -65,15 +61,38 @@ class CompanyFilialViewset(
     permission_classes=[IsAuthenticated]
 
     def get_queryset(self):
-        return super().get_queryset()
+        userprofile = UserProfile.objects.filter(user = self.request.user).first()
+        return super().get_queryset().filter(pk = userprofile.filial.pk).first()
+    
+    def list(self, request, *args, **kwargs):
+        filial = self.get_queryset()
+        userprofile = UserProfile.objects.filter(user = self.request.user).first()
+
+        filial_info = get_filial_info(userprofile.company.container_id, filial.pk)
+
+        new_filial, created = CompanyFilial.objects.get_or_create(
+            external_id = filial_info['id']
+        )
+
+        new_filial.name = filial['name']
+        new_filial.save()
+        
+        return new_filial
 
 class IntegrationViewset(
     GenericViewSet,
-    CreateModelMixin
+    CreateModelMixin,
+    ListModelMixin,
+    UpdateModelMixin
 ):
     queryset=Company.objects.all()
-    serializer_class=IntegrationSerializer
     permission_classes=[IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return IntegrationCretaeSerializer
+        else:
+            return IntegrationSerializer
 
     # def create(self, request, *args, **kwargs):
     #     worker_id = str(uuid.uuid4())[:8]
@@ -91,3 +110,15 @@ class IntegrationViewset(
     #         "service_name": service.metadata.name,
     #         "access_url": f"http://{service.metadata.name}.default.svc.cluster.local:5000"
     #     })
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        company = userprofile = UserProfile.objects.filter(user = self.request.user).first().company
+
+        worker_id = str(uuid.uuid4())[:8]
+        company.container_id = worker_id
+        company.integration_url = data['url']
+        company.integration_type = data['type']
+
+        company.save()
+        return data

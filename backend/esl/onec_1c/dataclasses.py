@@ -15,7 +15,7 @@ class ProductInfoResponse(DataClassJsonMixin):
     description: str
     price: float
     have_promotion: bool
-    promotion: float
+    promotion: int
 
 @dataclass
 class CompanyOrFilial(DataClassJsonMixin):
@@ -28,3 +28,12 @@ class CompanyInfoResponse(DataClassJsonMixin):
     dataclass_json_config = config(undefined=Undefined.EXCLUDE)["dataclasses_json"]
     company: CompanyOrFilial
     filials: list[CompanyOrFilial]
+
+@dataclass
+class Update(DataClassJsonMixin):
+    dataclass_json_config = config(undefined=Undefined.EXCLUDE)["dataclasses_json"]
+    id: str
+    short_name: str
+    price: float
+    have_promotion: bool | None
+    promotion: int | None

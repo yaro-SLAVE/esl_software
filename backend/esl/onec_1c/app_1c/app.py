@@ -370,6 +370,38 @@ def get_company_info():
             'status': 'error',
             'message': f'Internal error: {str(e)}'
         }), 500
+    
+@app.route('/api/filial/<id>/', methods=['GET'])
+def get_filial_info(id):
+    try:
+        company_info = {
+            'company': {},
+            'filials': []
+        }
+
+
+        response_filial = send_request(f"Catalog_СтруктурныеЕдиницы(guid'{id}')")
+
+        filial = response_filial.json().get('value')
+
+        filial_info = {
+            'id': filial.get('Ref_Key'),
+            'name': filial.get('Description')
+        }
+
+
+        return filial_info
+            
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Error connecting to 1C: {str(e)}'
+        }), 503
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Internal error: {str(e)}'
+        }), 500
 
 if __name__ == '__main__':
     start_background_updater()
