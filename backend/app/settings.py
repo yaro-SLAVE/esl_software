@@ -135,7 +135,7 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",
-    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=300),
+    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=3000),
     "REFRESH_TOKEN_LIFETIME": timedelta(seconds=14400),
 }
 

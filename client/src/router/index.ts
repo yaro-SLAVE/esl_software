@@ -7,7 +7,7 @@ import {
 } from 'vue-router';
 
 import routes from './routes';
-import useAuthStore from '../stores/authstore';
+import { useAuthStore } from '../stores/authstore';
 // import _ from "lodash";
 
 /*

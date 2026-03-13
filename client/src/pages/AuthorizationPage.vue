@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onBeforeMount  } from 'vue';
 import { useRoute } from 'vue-router';
-import useAuthStore from '../stores/authstore';
+import { useAuthStore } from '../stores/authstore';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 
@@ -33,7 +33,7 @@ async function loginUser() {
         />
         <q-input
           label="Пароль"
-          type="text"
+          type="password"
           v-model="password"
         />
         <q-btn

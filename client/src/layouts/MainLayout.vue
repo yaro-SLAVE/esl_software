@@ -3,11 +3,11 @@
 const linksList = [
   {
     title: 'Филиалы',
-    link: '/'
+    link: '/filials'
   },
   {
     title: 'Интеграции',
-    link: '/'
+    link: '/integrations'
   },
   {
     title: 'Статистика',

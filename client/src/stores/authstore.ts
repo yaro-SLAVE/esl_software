@@ -11,7 +11,7 @@ const $q = useQuasar();
 
 const router = useRouter();
 
-const useAuthStore = defineStore("AuthStore", () => {
+export const useAuthStore = defineStore("AuthStore", () => {
     type Tokens = {
         access: string;
         refresh: string;
@@ -123,7 +123,5 @@ const useAuthStore = defineStore("AuthStore", () => {
         });
     }, 120000);
 
-    return {userProf, jwt, is_auth, login, logout, getUserInfo};
+    return {userProf, jwt, is_auth, login, logout, getUserInfo, updateTokens};
 });
-
-export default useAuthStore;

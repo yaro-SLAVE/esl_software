@@ -15,6 +15,9 @@ from esl.onec_1c.app_1c.services.k8s_service import *
 
 import uuid
 
+import json
+from dataclasses import dataclass, asdict
+
 class CompanyViewset(
     GenericViewSet,
     ListModelMixin
@@ -22,6 +25,13 @@ class CompanyViewset(
     queryset=Company.objects.all()
     serializer_class=CompanySerializer
     permission_classes=[IsAuthenticated]
+
+    class InnerSerializer(serializers.Serializer):
+        class Info(serializers.Serializer):
+            id = serializers.CharField()
+            name = serializers.CharField()
+        company = Info()
+        filials = Info(many=True)
 
     def get_queryset(self):
         userprofile = UserProfile.objects.filter(user = self.request.user).first()
@@ -33,24 +43,27 @@ class CompanyViewset(
 
         company_info = get_company_info(company.container_id)
 
+        data = asdict(company_info)
+
+        print(data)
+
         new_company, created = Company.objects.get_or_create(
-            external_id = company_info['company']['id']
+            external_id = data['company']['id']
         )
 
-        new_company.name = company_info['company']['name']
+        new_company.name = data['company']['name']
         new_company.save()
 
-        for filial in company_info['filials']:
+        for filial in data['filials']:
             new_filial, created = CompanyFilial.objects.get_or_create(
-                external_id = filial['id']
+                external_id = filial['id'],
+                company = new_company
             )
 
             new_filial.name = filial['name']
             new_filial.save()
 
-        print(company_info)
-
-        return company_info
+        return Response(data)
 
 class CompanyFilialViewset(
     GenericViewSet,
