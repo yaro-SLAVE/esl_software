@@ -35,5 +35,5 @@ class Update(DataClassJsonMixin):
     id: str
     short_name: str
     price: float
-    have_promotion: bool | None
-    promotion: int | None
+    have_promotion: bool | None = None
+    promotion: int | None = None

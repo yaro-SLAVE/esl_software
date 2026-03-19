@@ -85,9 +85,10 @@ class ProductShowSerializer(serializers.Serializer):
     have_promotion = serializers.BooleanField()
     promotion = serializers.IntegerField()
 
-class ProductsExternalListSerializer(serializers.Serializer):
-    id = serializers.CharField()
-    short_name = serializers.CharField()
+class ProductsExternalListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ["id", "short_name"]
 
 class UpdateProductSerializer(serializers.Serializer):
     class UpdateProductItemSerializer(serializers.Serializer):

@@ -54,11 +54,15 @@ class CompanyViewset(
         new_company.name = data['company']['name']
         new_company.save()
 
+        data['company']['id'] = new_company.pk
+
         for filial in data['filials']:
             new_filial, created = CompanyFilial.objects.get_or_create(
                 external_id = filial['id'],
                 company = new_company
             )
+
+            filial['id'] = new_filial.pk
 
             new_filial.name = filial['name']
             new_filial.save()

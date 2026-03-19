@@ -5,6 +5,7 @@ import AuthorizationPage from '../pages/AuthorizationPage.vue';
 import ProfilePage from '../pages/ProfilePage.vue';
 import ProductShowPage from '../pages/ProductShowPage.vue'
 import IndexPage from "../pages/IndexPage.vue"
+import IntegrationPage from '../pages/IntegrationPage.vue';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -18,8 +19,15 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => FilialsListPage },
-      { path: '/:id', component: () => FilialItemPage }
+      { path: ':id', component: () => FilialItemPage }
     ],
+  },
+  {
+    path: '/integrations',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      { path: '', component: () => IntegrationPage }
+    ]
   },
 
   {

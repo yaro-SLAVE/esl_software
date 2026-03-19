@@ -31,11 +31,14 @@ export default route(function (/* { store, ssrContext } */) {
   });
 
   Router.beforeEach((to, from, next) => {
-    const userStore = useAuthStore();
+    const authStore = useAuthStore();
 
-    if (!userStore.is_auth && to.path != '/login') {
+    console.log(authStore.is_auth)
+
+    if (!authStore.is_auth && to.path != '/login') {
+      console.log('fhsdkjfhkjsh')
       next('/login');
-    } else if (userStore.is_auth && to.path == '/login') {
+    } else if (authStore.is_auth && to.path == '/login') {
       next('/profile')
     } else {
       next();

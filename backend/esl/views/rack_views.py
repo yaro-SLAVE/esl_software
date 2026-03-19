@@ -24,6 +24,8 @@ import asyncio
 
 from esl.onec_1c.services import get_products_list, get_product_info, get_updates
 
+from dataclasses import asdict
+
 
 class RackViewset(
     ListModelMixin,
@@ -157,20 +159,25 @@ class ProductViewset(
    
     def list(self, request, *args, **kwargs):
         # userprofile = UserProfile.objects.filter(user = self.request.user).first()
-        
-        products_list = get_products_list('')
-        serializer = self.get_serializer(products_list, many=True)
+        products = []
+        try:
+            products_list = get_products_list('')
+            serializer = self.get_serializer(products_list, many=True)
 
-        for product_item in serializer.data:
-            print(product_item)
-            product, created = Product.objects.get_or_create(
-                external_id = product_item['id']
-            )
+            for product_item in serializer.data:
+                print(product_item)
+                product, created = Product.objects.get_or_create(
+                    external_id = product_item['id']
+                )
 
-            product.short_name = product_item['short_name']
-            product.save()
+                product.short_name = product_item['short_name']
+                product.save()
 
-        return Response(data=serializer.data, status=200)
+                products.append(product)
+        except Exception as e:
+            products = Product.objects.all()
+
+        return Response(data=products, status=200)
 
     @action(['GET'], url_path="show", detail=False)
     def show_product(self, request): 
@@ -184,9 +191,13 @@ class ProductViewset(
 
         return Response(data=serializer.data, status=200)
 
-    @action(['POST'], url_path="update", detail=False)
+    @action(['POST', 'GET'], url_path="update", detail=False)
     def products_update(self, request, *args, **kwargs):
-        updates = request.data['updates']
+        if request.method == 'POST':
+            updates = request.data['updates']
+        else:
+            updates = get_updates('')
+            updates = [ asdict(update) for update in updates]
 
         if len(updates) > 0:
             for update in updates:
@@ -207,44 +218,46 @@ class ProductViewset(
 
                     esl = ESL.objects.filter(rack = product.rack).first()
 
-                    asyncio.run(self.send_to_esl(
-                        data,
-                        esl.token,
-                        esl.esl_ip
-                    ))
+                    if (product.pk == 3):
+                        asyncio.run(self.send_to_esl(
+                            data,
+                            'qwe123123qwe', #esl.token,
+                            '10.35.41.216', #esl.esl_ip
+                        ))
                 
         return Response(200)
     
-    @action(['GET'], url_path="update", detail=False)
-    def products_update_force(self, request, *args, **kwargs):
-        updates = get_updates('')
+    # @action(['GET'], url_path="update", detail=False)
+    # def products_update_force(self, request, *args, **kwargs):
+    #     updates = get_updates('')
 
-        if len(updates) > 0:
-            for update in updates:
-                product = Product.objects.filter(external_id = update['id']).first()
+    #     if len(updates) > 0:
+    #         for update in updates:
+    #             product = Product.objects.filter(external_id = update['id']).first()
 
-                if product is not None:
-                    data = {
-                        "company": 1,
-                        "product": product.pk,
-                        "price": update['price'],
-                        "short_name": update['short_name']
-                    }
+    #             if product is not None:
+    #                 data = {
+    #                     "company": 1,
+    #                     "product": product.pk,
+    #                     "price": update['price'],
+    #                     "short_name": update['short_name']
+    #                 }
 
-                    if 'promotion' in update:
-                        data['promotion'] = update['promotion']
-                    if 'have_promotion' in update:
-                        data['have_promotion'] = update['have_promotion']
+    #                 if 'promotion' in update:
+    #                     data['promotion'] = update['promotion']
+    #                 if 'have_promotion' in update:
+    #                     data['have_promotion'] = update['have_promotion']
 
-                    esl = ESL.objects.filter(rack = product.rack).first()
+    #                 esl = ESL.objects.filter(rack = product.rack).first()
 
-                    asyncio.run(self.send_to_esl(
-                        data,
-                        esl.token,
-                        esl.esl_ip
-                    ))
+    #                 if (product.pk == 3):
+    #                     asyncio.run(self.send_to_esl(
+    #                         data,
+    #                         'qwe123123qwe', #esl.token,
+    #                         '10.35.41.216', #esl.esl_ip
+    #                     ))
 
-        return Response(200)
+    #     return Response(200)
 
     async def send_to_esl(self, data, token, esl_ip):
         async with ClientSession() as client:

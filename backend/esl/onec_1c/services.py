@@ -36,9 +36,11 @@ def get_filial_info(worker_id: str, filial_id: str) -> CompanyOrFilial:
     
     return CompanyOrFilial.schema().load(r.json())
 
-def get_updates(worker_id: str) -> Update:
+def get_updates(worker_id: str) -> list[Update]:
     worker_url = get_worker_url(worker_id)
     
     r = requests.get(f"{worker_url}/api/updates/")
     
-    return Update.schema().load(r.json())
+    update_schema = class_schema(Update)(many=True)
+
+    return update_schema.load(r.json())

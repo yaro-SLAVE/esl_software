@@ -21,7 +21,7 @@ onBeforeMount(async () => {
   <q-page>
     <diiv v-for="filial in filials" style="display: flex; flex-direction: row">
       <div>
-        <a :href="'/filials/' + filial.id">
+        <a :href="'#/filials/' + filial.id">
         <h4>{{ filial.name }}</h4>
         </a>
       </div>
