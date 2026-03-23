@@ -5,9 +5,10 @@ export type User = {
     last_name: string | undefined;
 };
 
-export type UserProfiel = {
+export type UserProfile = {
     user: User,
     role: string,
     company_id: number | undefined,
     filial_id: number | undefined,
+    is_auth: boolean,
 }

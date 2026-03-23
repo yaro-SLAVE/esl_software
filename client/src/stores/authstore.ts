@@ -1,8 +1,8 @@
 import {defineStore} from "pinia";
 import {ref, onBeforeMount, computed} from 'vue';
-import axios from "axios";
+import { api } from 'boot/axios';
 import { jwtDecode } from "jwt-decode";
-import type { User} from "../types"
+import type { User, UserProfile} from "../types"
 import { useQuasar } from 'quasar';
 
 import { useRouter } from 'vue-router';
@@ -22,28 +22,12 @@ export const useAuthStore = defineStore("AuthStore", () => {
 
     type Token = string | undefined;
     
-    const userProf = ref<User>();
+    const userProf = ref<UserProfile>();
 
     const jwt = ref<Token>(LocalStorage.getItem('jwt') as string || '');
     const refresh = ref<Token>(LocalStorage.getItem('refresh') as string || '');
 
-    const is_auth = computedAsync(async () => {
-        try {
-            return await updateTokens();
-        } catch (error) {
-            return false;
-        }
-    }, false);
-
-    onMounted(async () => {
-        try {
-            const r =  await updateTokens();
-            console.log(r);
-            is_auth.value = r;
-        } catch (error) {
-            is_auth.value = false;
-        }
-    });
+    const is_auth = ref<boolean>(true);
 
     function isTokenValid(token: Token): boolean {
 
@@ -64,7 +48,7 @@ export const useAuthStore = defineStore("AuthStore", () => {
     async function login(username: string, password: string): Promise<boolean> {      
         try {
             const result = (
-                await axios.post<Tokens>("/api/auth/login/", {
+                await api.post<Tokens>("/api/auth/login/", {
                     username: username,
                     password: password,
                 })
@@ -77,9 +61,10 @@ export const useAuthStore = defineStore("AuthStore", () => {
 
             await getUserInfo();
 
+            is_auth.value = true;
             return true;
-        } catch(error){
-            console.error("При авторизации ошибка", error);
+        } catch(error) {
+            is_auth.value = false;
             return false;
         }
     }
@@ -89,15 +74,19 @@ export const useAuthStore = defineStore("AuthStore", () => {
         refresh.value = undefined;
         jwt.value = undefined;
         userProf.value = undefined;
+        is_auth.value = false;
 
-        await axios.post("/api/auth/logout/", {
+        LocalStorage.set('jwt', '');
+        LocalStorage.set('refresh', '');
+
+        await api.post("/api/auth/logout/", {
             headers: {
                 Authorization: `Bearer ${jwt.value}`
             },
             refresh: refreshCopy,
         });
 
-        await axios.post("/admin/logout/");
+        await api.post("/admin/logout/");
         saveTokens();
 
         await router.push('/login');
@@ -116,7 +105,7 @@ export const useAuthStore = defineStore("AuthStore", () => {
 
     async function refreshTokens() {
         const newTokens: Tokens = (
-        await axios.post("/api/auth/refresh/", {
+        await api.post("/api/auth/refresh/", {
                 refresh: refresh.value,
             })
         ).data;
@@ -130,11 +119,8 @@ export const useAuthStore = defineStore("AuthStore", () => {
     async function getUserInfo() {
         if (await updateTokens()) {
             try {
-                userProf.value = (await axios.get<User>("/api/user/self-info/", {
-                    headers: {
-                        Authorization: `Bearer ${jwt.value}`
-                    },
-                })).data;
+                userProf.value = (await api.get<UserProfile>("/api/user/self-info/")).data;
+                is_auth.value = userProf.value.is_auth;
             } catch(error) {
                 console.error("Ошибка при получении инфы о пользователе", error);
             }

@@ -17,7 +17,6 @@ class CompanySerializer(serializers.ModelSerializer):
         return UserProfileSerializer(profiles, many=True).data
 
 class CompanyFilialSerializer(serializers.ModelSerializer):
-    company=CompanySerializer()
 
     class Meta:
         model=CompanyFilial

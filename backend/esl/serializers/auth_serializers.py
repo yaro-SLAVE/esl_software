@@ -12,7 +12,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     user=UserSerializer()
+    is_auth=serializers.SerializerMethodField()
 
     class Meta:
         model=UserProfile
-        fields=["role", "user", "filial_id", "company_id"]
+        fields=["role", "user", "filial_id", "company_id", "is_auth"]
+    
+    def get_is_auth(self, obj):
+        return obj is not None

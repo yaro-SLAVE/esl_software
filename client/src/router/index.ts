@@ -33,9 +33,7 @@ export default route(function (/* { store, ssrContext } */) {
   Router.beforeEach((to, from, next) => {
     const authStore = useAuthStore();
 
-    console.log(authStore.is_auth)
-
-    if (!authStore.is_auth && to.path != '/login') {
+    if (!authStore.is_auth && to.path !== '/login') {
       console.log('fhsdkjfhkjsh')
       next('/login');
     } else if (authStore.is_auth && to.path == '/login') {

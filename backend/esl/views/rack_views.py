@@ -39,6 +39,7 @@ class RackViewset(
         barcode = serializers.CharField()
 
     queryset=Rack.objects.all()
+    permission_classes=[IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == "update":
@@ -56,8 +57,7 @@ class RackViewset(
 
         response = {
             "filial": {
-                "organization_name": filial.organization.name,
-                "address": filial.address,
+                "name": filial.name,
                 "rows": filial.rows,
                 "columns": filial.columns
             },
@@ -146,6 +146,7 @@ class ProductViewset(
     GenericViewSet
 ):
     queryset=Product.objects.all()
+    permission_classes=[IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == 'show_product':
@@ -153,7 +154,7 @@ class ProductViewset(
         elif self.action == 'products_update':
             return UpdateProductSerializer
         elif self.action == 'list':
-            return ProductsExternalListSerializer
+            return ProductSerializer
         else:
             return ProductSerializer
    
@@ -162,9 +163,9 @@ class ProductViewset(
         products = []
         try:
             products_list = get_products_list('')
-            serializer = self.get_serializer(products_list, many=True)
+            products_list = asdict(products_list)
 
-            for product_item in serializer.data:
+            for product_item in products_list:
                 print(product_item)
                 product, created = Product.objects.get_or_create(
                     external_id = product_item['id']
@@ -176,8 +177,10 @@ class ProductViewset(
                 products.append(product)
         except Exception as e:
             products = Product.objects.all()
+        
+        serializer = self.get_serializer(products, many=True)
 
-        return Response(data=products, status=200)
+        return Response(data=serializer.data, status=200)
 
     @action(['GET'], url_path="show", detail=False)
     def show_product(self, request): 

@@ -7,8 +7,7 @@ from esl.serializers.company_serializers import CompanySerializer, CompanyFilial
 
 class RackListSerializer(serializers.Serializer):
     class FilialSerializer(serializers.Serializer):
-        organization_name=serializers.CharField()
-        address=serializers.CharField()
+        name=serializers.CharField()
         rows=serializers.IntegerField()
         columns=serializers.IntegerField()
 

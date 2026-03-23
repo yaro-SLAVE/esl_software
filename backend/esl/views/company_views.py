@@ -96,6 +96,25 @@ class CompanyFilialViewset(
         new_filial.save()
         
         return new_filial
+    
+    def retrieve(self, request, *args, **kwargs):
+        userprofile = UserProfile.objects.filter(user = self.request.user).first()
+        filial = CompanyFilial.objects.filter(pk = kwargs.get('pk')).first()
+
+        filial_info = asdict(get_filial_info(userprofile.company.container_id, filial.external_id))
+
+        new_filial, created = CompanyFilial.objects.get_or_create(
+            external_id = filial_info['id']
+        )
+
+        new_filial.name = filial_info['name']
+        new_filial.save()
+
+        serializer = self.get_serializer(new_filial)
+        
+        return Response(serializer.data)
+
+        
 
 class IntegrationViewset(
     GenericViewSet,

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import axios from 'axios';
+import { api } from 'boot/axios';
 import { ref, computed, onBeforeMount } from 'vue';
+import { useRoute } from 'vue-router';
 
 type ActiveSquare = {
   row: number;
@@ -15,6 +16,10 @@ type MatrixSquare = {
   rack_id: number | null;
   rack_number: number | null;
 }
+
+const route = useRoute();
+
+const filialId = ref(route.params.id);
 
 const rows = ref(3);
 const columns = ref(3);
@@ -33,7 +38,7 @@ const showRack = ref(false);
 const rackToAdd = ref();
 
 async function fetchRacks() {
-  const r = await axios.get('/api/rack/?filial=1');
+  const r = await api.get('/api/rack/?filial=1');
   console.log(r.data);
   filialInfo.value = r.data;
   rows.value = filialInfo.value.filial.rows;
@@ -48,7 +53,7 @@ async function fetchRacks() {
 }
 
 async function fetchProducts() {
-  const r = await axios.get('/api/product/');
+  const r = await api.get('/api/product/');
 
   products.value = r.data;
 
@@ -56,7 +61,7 @@ async function fetchProducts() {
 }
 
 async function fetchFilialInfo() {
-  const r = await axios.get(`/api/filial/${}`);
+  const r = await api.get(`/api/filial/${filialId.value}`);
 
   products.value = r.data;
 
@@ -67,6 +72,7 @@ onBeforeMount(async () => {
   
   await fetchRacks();
   await fetchProducts();
+  await fetchFilialInfo();
 });
 
 const matrix = computed(() => {
@@ -166,7 +172,7 @@ async function addRack(){
   formData.append('row', activeSquare.value.row);
   formData.append('column', activeSquare.value.col);
 
-  const r = await axios.put(`/api/rack/${rackToAdd.value}/`, formData);
+  const r = await api.put(`/api/rack/${rackToAdd.value}/`, formData);
 
   showRack.value = false;
 
@@ -181,7 +187,7 @@ async function addRack(){
 }
 
 async function deleteRack(id: number) {
-  await axios.delete(`/api/rack/${id}/`);
+  await api.delete(`/api/rack/${id}/`);
   await fetchRacks();
   activeSquare.value.rack_id = null;
   activeSquare.value.rack_number = null;
@@ -200,7 +206,7 @@ async function updateProduct(){
 
   const id = filialInfo.value.racks[activeSquare.value.rack_id].id;
 
-  const r = await axios.put(`/api/rack/${id}/`, body, {
+  const r = await api.put(`/api/rack/${id}/`, body, {
     headers: {
       "Content-Type": "application/json"
     }
@@ -216,30 +222,60 @@ async function updateProduct(){
 <template>
   <q-page>
     <div style="display: grid; grid-template-columns: 2fr 1fr;">
-      <div>
-        <div 
-          class="matrix-container q-mt-md"
-          style="overflow: auto; max-height: 70vh; "
-        >
-          <div
-            v-for="(row, rowIndex) in matrix"
-            :key="rowIndex"
-            class="row no-wrap"
+      <div style="display: flex; flex-direction: row; align-items: center">
+        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center">
+          <div 
+            class="matrix-container q-mt-md"
+            style="overflow: auto; max-height: 70vh; "
           >
             <div
-              v-for="(square, colIndex) in row"
-              :key="colIndex"
-              class="square-container"
+              v-for="(row, rowIndex) in matrix"
+              :key="rowIndex"
+              class="row no-wrap"
             >
-              <q-btn
-                square
-                class="square"
-                :label="`${square.rack_number !== null ? square.rack_number : ''}`"
-                :class="{ 'selected-square': square.rack_id !== null, 'active-square': activeSquare?.row === rowIndex && activeSquare?.col === colIndex }"
-                @click="selectSquare(rowIndex, colIndex)"
-              />
+              <div
+                v-for="(square, colIndex) in row"
+                :key="colIndex"
+                class="square-container"
+              >
+                <q-btn
+                  square
+                  class="square"
+                  :label="`${square.rack_number !== null ? square.rack_number : ''}`"
+                  :class="{ 'selected-square': square.rack_id !== null, 'active-square': activeSquare?.row === rowIndex && activeSquare?.col === colIndex }"
+                  @click="selectSquare(rowIndex, colIndex)"
+                />
+              </div>
             </div>
           </div>
+
+          <div style="display: flex; flex-direction: row">
+            <q-btn
+              label="+"
+              @click="addRow"
+              class="col-2"
+            />
+            <q-btn
+              label="-"
+              @click="removeRow"
+              :disabled="columns <= 1"
+              class="col-2"
+            />
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column">
+          <q-btn
+            label="+"
+            @click="addColumn"
+            class="col-2"
+          />
+          <q-btn
+            label="-"
+            @click="removeColumn"
+            :disabled="columns <= 1"
+            class="col-2"
+          />
         </div>
       </div>
       

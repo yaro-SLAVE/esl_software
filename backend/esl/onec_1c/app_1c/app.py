@@ -374,15 +374,9 @@ def get_company_info():
 @app.route('/api/filial/<id>/', methods=['GET'])
 def get_filial_info(id):
     try:
-        company_info = {
-            'company': {},
-            'filials': []
-        }
-
-
         response_filial = send_request(f"Catalog_СтруктурныеЕдиницы(guid'{id}')")
 
-        filial = response_filial.json().get('value')
+        filial = response_filial.json()
 
         filial_info = {
             'id': filial.get('Ref_Key'),
