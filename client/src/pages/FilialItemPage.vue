@@ -60,19 +60,19 @@ async function fetchProducts() {
   console.log(r.data);
 }
 
-async function fetchFilialInfo() {
-  const r = await api.get(`/api/filial/${filialId.value}`);
+// async function fetchFilialInfo() {
+//   const r = await api.get(`/api/filial/${filialId.value}`);
 
-  products.value = r.data;
+//   filialInfo.value = r.data;
 
-  console.log(r.data);
-}
+//   console.log(r.data);
+// }
 
 onBeforeMount(async () => {
   
   await fetchRacks();
   await fetchProducts();
-  await fetchFilialInfo();
+  //await fetchFilialInfo();
 });
 
 const matrix = computed(() => {
@@ -131,6 +131,13 @@ const freeProducts = computed(() => {
   return data;
 });
 
+async function updateFilial() {
+  const r = await api.put(`/api/filial/${filialId.value}/`, {
+    rows: rows.value,
+    columns: columns.value,
+  });
+}
+
 const selectSquare = (row: number, col: number) => {
   const square = matrix.value[row][col];
   activeSquare.value = {
@@ -141,29 +148,33 @@ const selectSquare = (row: number, col: number) => {
   };
 };
 
-const addRow = () => {
+const addRow = async () => {
   rows.value++;
+  await updateFilial();
 };
 
-const addColumn = () => {
+const addColumn = async () => {
   columns.value++;
+  await updateFilial();
 };
 
-const removeRow = () => {
+const removeRow = async () => {
   if (rows.value > 1) {
     rows.value--;
     if (activeSquare.value && activeSquare.value.row >= rows.value) {
       activeSquare.value = null;
     }
+    await updateFilial();
   }
 };
 
-const removeColumn = () => {
+const removeColumn = async () => {
   if (columns.value > 1) {
     columns.value--;
     if (activeSquare.value && activeSquare.value.col >= columns.value) {
       activeSquare.value = null;
     }
+    await updateFilial();
   }
 };
 
@@ -221,95 +232,75 @@ async function updateProduct(){
 
 <template>
   <q-page>
-    <div style="display: grid; grid-template-columns: 2fr 1fr;">
-      <div style="display: flex; flex-direction: row; align-items: center">
-        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center">
-          <div 
-            class="matrix-container q-mt-md"
-            style="overflow: auto; max-height: 70vh; "
-          >
-            <div
-              v-for="(row, rowIndex) in matrix"
-              :key="rowIndex"
-              class="row no-wrap"
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px">
+      <div style="display: flex; flex-direction: column;">
+        <div class="row">
+          <q-btn
+            href="#/filials"
+            label="Назад"
+          />
+        </div>
+
+        <div style="display: flex; flex-direction: row; align-items: center">
+          <div style="display: flex; flex-direction: column; justify-content: center; align-items: center">
+            <div 
+              class="matrix-container q-mt-md"
+              style="overflow: auto; max-height: 70vh; "
             >
               <div
-                v-for="(square, colIndex) in row"
-                :key="colIndex"
-                class="square-container"
+                v-for="(row, rowIndex) in matrix"
+                :key="rowIndex"
+                class="row no-wrap"
               >
-                <q-btn
-                  square
-                  class="square"
-                  :label="`${square.rack_number !== null ? square.rack_number : ''}`"
-                  :class="{ 'selected-square': square.rack_id !== null, 'active-square': activeSquare?.row === rowIndex && activeSquare?.col === colIndex }"
-                  @click="selectSquare(rowIndex, colIndex)"
-                />
+                <div
+                  v-for="(square, colIndex) in row"
+                  :key="colIndex"
+                  class="square-container"
+                >
+                  <q-btn
+                    square
+                    class="square"
+                    :label="`${square.rack_number !== null ? square.rack_number : ''}`"
+                    :class="{ 'selected-square': square.rack_id !== null, 'active-square': activeSquare?.row === rowIndex && activeSquare?.col === colIndex }"
+                    @click="selectSquare(rowIndex, colIndex)"
+                  />
+                </div>
               </div>
+            </div>
+
+            <div style="display: flex; flex-direction: row">
+              <q-btn
+                label="+"
+                @click="addRow"
+                class="col-2"
+              />
+              <q-btn
+                label="-"
+                @click="removeRow"
+                :disabled="columns <= 1"
+                class="col-2"
+              />
             </div>
           </div>
 
-          <div style="display: flex; flex-direction: row">
+          <div style="display: flex; flex-direction: column">
             <q-btn
               label="+"
-              @click="addRow"
-              class="col-2"
-            />
-            <q-btn
-              label="-"
-              @click="removeRow"
-              :disabled="columns <= 1"
-              class="col-2"
-            />
-          </div>
-        </div>
-
-        <div style="display: flex; flex-direction: column">
-          <q-btn
-            label="+"
-            @click="addColumn"
-            class="col-2"
-          />
-          <q-btn
-            label="-"
-            @click="removeColumn"
-            :disabled="columns <= 1"
-            class="col-2"
-          />
-        </div>
-      </div>
-      
-      <div>
-        <div class="controls q-mt-xl">          
-          <div class="row q-gutter-md">
-            <q-btn
-              color="primary"
-              label="+строка"
-              @click="addRow"
-              class="col-2"
-            />
-            <q-btn
-              color="primary"
-              label="+столбец"
               @click="addColumn"
               class="col-2"
             />
             <q-btn
-              color="negative"
-              label="-строка"
-              @click="removeRow"
-              :disabled="rows <= 1"
-              class="col-2"
-            />
-            <q-btn
-              color="negative"
-              label="-столбец"
+              label="-"
               @click="removeColumn"
               :disabled="columns <= 1"
               class="col-2"
             />
           </div>
-
+        </div>
+      </div>
+      
+      <div>
+        <div class="controls q-mt-xl">          
           <div v-if="activeSquare" style="margin: 15px">
             <h4>Сведения о стеллаже</h4>
 

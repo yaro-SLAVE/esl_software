@@ -22,6 +22,17 @@ class CompanyFilialSerializer(serializers.ModelSerializer):
         model=CompanyFilial
         fields=["id", "name"]
 
+class CompanyFilialUpdateSerializer(serializers.Serializer):
+    rows = serializers.IntegerField()
+    columns = serializers.IntegerField()
+
+    def update(self, instance, validated_data):
+        instance.rows = validated_data['rows']
+        instance.columns = validated_data['columns']
+        instance.save()
+
+        return instance
+
 class IntegrationCretaeSerializer(serializers.Serializer):
     login=serializers.CharField()
     password=serializers.CharField()

@@ -36,7 +36,7 @@ export const useAuthStore = defineStore("AuthStore", () => {
             return false;
         } else {
             const decoded = jwtDecode(String(token));
-            return Date.now() < decoded.exp! * 3000;
+            return Date.now() < decoded.exp! * 1000;
         }
     }
 

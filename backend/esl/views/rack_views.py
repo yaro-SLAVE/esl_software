@@ -88,32 +88,32 @@ class RackViewset(
 
         return Response(serializer.data)
 
-    # def update(self, request, *args, **kwargs):
-    #     r = super().update(request, *args, **kwargs)
+    def update(self, request, *args, **kwargs):
+        r = super().update(request, *args, **kwargs)
 
-    #     if ("products" in request.data):
-    #         pk = self.kwargs["pk"]
+        # if ("products" in request.data):
+        #     pk = self.kwargs["pk"]
 
-    #         rack = Rack.objects.filter(pk=pk).first()
+        #     rack = Rack.objects.filter(pk=pk).first()
 
-    #         product = Product.objects.filter(rack = rack).first()
+        #     product = Product.objects.filter(rack = rack).first()
 
-    #         serializer = self.ESLSerializer(data={
-    #             'name': product.short_name,
-    #             'price': product.price,
-    #             'barcode': product.barcode
-    #         })
-    #         serializer.is_valid(raise_exception=True)
+        #     serializer = self.ESLSerializer(data={
+        #         'name': product.short_name,
+        #         'price': product.price,
+        #         'barcode': product.barcode
+        #     })
+        #     serializer.is_valid(raise_exception=True)
 
-    #         esl = ESL.objects.filter(rack = rack).first()
+        #     esl = ESL.objects.filter(rack = rack).first()
 
-    #         asyncio.run(self.send_to_esl(
-    #                     serializer.validated_data,
-    #                     esl.token,
-    #                     esl.esl_ip
-    #                 ))
+        #     asyncio.run(self.send_to_esl(
+        #                 serializer.validated_data,
+        #                 esl.token,
+        #                 esl.esl_ip
+        #             ))
                 
-    #     return r
+        return r
 
     # async def send_to_esl(self, data, token, esl_ip):
     #     async with ClientSession() as client:

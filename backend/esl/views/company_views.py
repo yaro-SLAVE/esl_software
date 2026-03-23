@@ -72,15 +72,17 @@ class CompanyViewset(
 class CompanyFilialViewset(
     GenericViewSet,
     ListModelMixin,
-    RetrieveModelMixin
+    RetrieveModelMixin, 
+    UpdateModelMixin
 ):
     queryset=CompanyFilial.objects.all()
-    serializer_class=CompanyFilialSerializer
     permission_classes=[IsAuthenticated]
 
-    def get_queryset(self):
-        userprofile = UserProfile.objects.filter(user = self.request.user).first()
-        return super().get_queryset().filter(pk = userprofile.filial.pk).first()
+    def get_serializer_class(self):
+        if self.action == 'update':
+            return CompanyFilialUpdateSerializer
+        else:
+            return CompanyFilialSerializer
     
     def list(self, request, *args, **kwargs):
         filial = self.get_queryset()
