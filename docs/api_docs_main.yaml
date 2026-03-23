@@ -254,6 +254,39 @@ paths:
         '403':
           description: Forbiden
 
+    get:
+      tags:
+        - esl
+      security:
+        - bearer: []
+      summary: Получение статистики по ошибкам устройств
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Ошибка в запросе
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+
+  /api/esl/report/:
+    get:
+      tags:
+        - esl
+      security:
+        - bearer: []
+      summary: Получение статистики по отправке задач на обновление
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Ошибка в запросе
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+
   /api/esl/firmware/:
     get:
       tags:
@@ -502,6 +535,30 @@ paths:
           description: Forbiden
 
   /api/integration/{id}:
+    get:
+      tags:
+        - integration
+      security:
+        - bearer: []
+      summary: Получение информации об интеграции компании
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+            description: ID организации
+      responses:
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbiden
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
     put:
       tags:
         - integration
@@ -548,20 +605,40 @@ paths:
         '403':
           description: Forbiden
 
-  /api/company/update/:
+  /api/integration/health/{id}:
     get:
       tags:
-        - force
+        - integration
       security:
         - bearer: []
-      summary: ПРинудительное обновление информации о компании
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+            description: ID интеграции
+      summary: Получение сведений о состоянии интеграции
       responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ready: 
+                    type: boolean
+                  company:
+                    type: boolean
+                  products:
+                    type: boolean
+        '400':
+          description: Ошибка в запросе
         '401':
           description: Unauthorized
         '403':
           description: Forbiden
-        '200':
-          description: OK
   
   /api/product/update/:
     get:

@@ -55,7 +55,16 @@ async function fetchProducts() {
   console.log(r.data);
 }
 
+async function fetchFilialInfo() {
+  const r = await axios.get(`/api/filial/${}`);
+
+  products.value = r.data;
+
+  console.log(r.data);
+}
+
 onBeforeMount(async () => {
+  
   await fetchRacks();
   await fetchProducts();
 });

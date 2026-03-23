@@ -71,7 +71,8 @@ class CompanyViewset(
 
 class CompanyFilialViewset(
     GenericViewSet,
-    ListModelMixin
+    ListModelMixin,
+    RetrieveModelMixin
 ):
     queryset=CompanyFilial.objects.all()
     serializer_class=CompanyFilialSerializer
