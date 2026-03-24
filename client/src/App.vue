@@ -15,6 +15,7 @@ onMounted(async () => {
 
   intervalId = window.setInterval(async () => {
     await authStore.updateTokens();
+    await authStore.getUserInfo();
   }, 60000);
 });
 </script>

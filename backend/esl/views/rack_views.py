@@ -134,8 +134,8 @@ class RackViewset(
         pk = self.kwargs["pk"]
 
         rack = Rack.objects.get(pk=pk)
-        rack.row = -1
-        rack.column = -1
+        rack.row = None
+        rack.column = None
         rack.save()
 
         return Response()
@@ -221,11 +221,11 @@ class ProductViewset(
 
                     esl = ESL.objects.filter(rack = product.rack).first()
 
-                    if (product.pk == 3):
+                    if esl is not None:
                         asyncio.run(self.send_to_esl(
                             data,
-                            'qwe123123qwe', #esl.token,
-                            '10.35.41.216', #esl.esl_ip
+                            esl.token, #esl.token,
+                            esl.esl_ip, #esl.esl_ip
                         ))
                 
         return Response(200)

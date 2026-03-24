@@ -10,11 +10,11 @@ import { LocalStorage } from 'quasar'
 import { onMounted } from "vue";
 import { computedAsync } from "@vueuse/core";
 
-const $q = useQuasar();
-
-const router = useRouter();
-
 export const useAuthStore = defineStore("AuthStore", () => {
+    const $q = useQuasar();
+
+    const router = useRouter();
+
     type Tokens = {
         access: string;
         refresh: string;
@@ -28,6 +28,8 @@ export const useAuthStore = defineStore("AuthStore", () => {
     const refresh = ref<Token>(LocalStorage.getItem('refresh') as string || '');
 
     const is_auth = ref<boolean>(true);
+    const role = ref<String>('');
+    const filialId = ref();
 
     function isTokenValid(token: Token): boolean {
 
@@ -79,10 +81,7 @@ export const useAuthStore = defineStore("AuthStore", () => {
         LocalStorage.set('jwt', '');
         LocalStorage.set('refresh', '');
 
-        await api.post("/api/auth/logout/", {
-            headers: {
-                Authorization: `Bearer ${jwt.value}`
-            },
+        await api.post("/api/auth/logout/",{
             refresh: refreshCopy,
         });
 
@@ -119,8 +118,11 @@ export const useAuthStore = defineStore("AuthStore", () => {
     async function getUserInfo() {
         if (await updateTokens()) {
             try {
-                userProf.value = (await api.get<UserProfile>("/api/user/self-info/")).data;
+                const r = await api.get<UserProfile>("/api/user/self-info/");
+                userProf.value = r.data;
                 is_auth.value = userProf.value.is_auth;
+                role.value = userProf.value.role;
+                filialId.value = userProf.value.filial_id;
             } catch(error) {
                 console.error("Ошибка при получении инфы о пользователе", error);
             }
@@ -137,5 +139,5 @@ export const useAuthStore = defineStore("AuthStore", () => {
         });
     }, 120000);
 
-    return {userProf, jwt, is_auth, login, logout, getUserInfo, updateTokens};
+    return {userProf, jwt, is_auth, role, filialId, login, logout, getUserInfo, updateTokens};
 });

@@ -13,7 +13,7 @@ class RackListSerializer(serializers.Serializer):
 
     class RackSerilizer(serializers.Serializer):
         class ProductSerializer(serializers.Serializer):
-            barcode=serializers.CharField()
+            external_id=serializers.CharField()
             short_name=serializers.CharField()
             shelf=serializers.IntegerField()
             number=serializers.IntegerField()
@@ -40,7 +40,7 @@ class RackUpdateSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         if "products" in validated_data:
-            products_to_delete = Company.objects.filter(rack = instance).all()
+            products_to_delete = Product.objects.filter(rack = instance).all()
 
             for product in products_to_delete:
                 product.rack = None

@@ -34,4 +34,22 @@ class ESLViewset(
             return ESLSerializer
 
     def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
+        data = self.request.data
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            # 2. Иначе берем REMOTE_ADDR (прямое подключение)
+            ip = request.META.get('REMOTE_ADDR')
+        print(ip)
+        
+        filial = CompanyFilial.objects.filter(pk = 1).first()
+
+        rack, created = Rack.objects.get_or_create(number = int(data['rack']), filial = filial)
+
+        esl, created = ESL.objects.get_or_create(esl_ip = ip)
+        esl.token = data['token']
+        esl.rack = rack
+        esl.save()
+        return Response(data)
+        # return super().create(request, *args, **kwargs)

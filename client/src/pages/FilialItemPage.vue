@@ -36,6 +36,7 @@ const productToUpdate = ref();
 
 const showRack = ref(false);
 const rackToAdd = ref();
+const rackNumberToCreate = ref();
 
 async function fetchRacks() {
   const r = await api.get('/api/rack/?filial=1');
@@ -93,8 +94,10 @@ const matrix = computed(() => {
 
   if (filialInfo.value !== undefined) {
     filialInfo.value.racks.forEach((rack, index) => {
-      matrix.value[rack.row][rack.column].rack_id = index;
-      matrix.value[rack.row][rack.column].rack_number = rack.number;
+      if (rack.row !== null && rack.column !== null) {
+        matrix.value[rack.row][rack.column].rack_id = index;
+        matrix.value[rack.row][rack.column].rack_number = rack.number;
+      }
     });
   }
   
@@ -106,7 +109,7 @@ const freeRacks = computed(() => {
 
   if (filialInfo.value !== undefined) {
     filialInfo.value.racks.forEach(rack => {
-      if (rack.col === -1 || rack.row === -1) {
+      if (rack.col === null || rack.row === null) {
         data.push(rack);
       }
     });
@@ -187,6 +190,31 @@ async function addRack(){
 
   showRack.value = false;
 
+  rackToAdd.value = undefined;
+
+  await fetchRacks();
+
+  filialInfo.value.racks.forEach((rack, index) => {
+    if (rack.row === activeSquare.value.row && activeSquare.value.col == rack.column) {
+      activeSquare.value.rack_id = index;
+      activeSquare.value.rack_number = rack.number;
+    }
+  });
+}
+
+async function createRack(){
+  let formData = new FormData();
+  formData.append('row', activeSquare.value.row);
+  formData.append('column', activeSquare.value.col);
+  formData.append('number', rackNumberToCreate.value);
+  formData.append('filial', filialId.value);
+
+  const r = await api.post(`/api/rack/`, formData);
+
+  showRack.value = false;
+
+  rackNumberToCreate.value = undefined;
+
   await fetchRacks();
 
   filialInfo.value.racks.forEach((rack, index) => {
@@ -226,6 +254,7 @@ async function updateProduct(){
   showProduct.value = false;
 
   await fetchProducts();
+  await fetchRacks();
 }
 
 </script>
@@ -301,8 +330,11 @@ async function updateProduct(){
       
       <div>
         <div class="controls q-mt-xl">          
-          <div v-if="activeSquare" style="margin: 15px">
-            <h4>Сведения о стеллаже</h4>
+          <div v-if="activeSquare" style="display: flex; flex-direction: column; margin: 15px; gap: 20px">
+            <q-btn
+              color="primary"
+              label="Обновить информацию на ценниках"
+            />
 
             <div v-if="activeSquare.rack_id !== null">
               <span>IP адрес устройства: {{ filialInfo.racks[activeSquare.rack_id].esl_ip }}</span>
@@ -324,6 +356,13 @@ async function updateProduct(){
                     @click="showProduct = true"
                   />
                 </div>
+                <q-btn
+                  v-if="filialInfo.racks[activeSquare.rack_id].products.length === 0"
+                  square
+                  class="product"
+                  label="Добавить продукт"
+                  @click="showProduct = true"
+                />
               </div>
             </div>
 
@@ -333,12 +372,10 @@ async function updateProduct(){
               <br>
 
               <q-btn
-                v-if="freeRacks.length !== 0"
                 color="primary"
                 label="Добавить стеллаж"
                 @click="showRack = true"
               />
-              <span v-else>Доступных стеллажей нет</span>
             </div>
           </div>
           
@@ -377,19 +414,32 @@ async function updateProduct(){
         </q-card-section>
 
         <q-card-section class="q-pt-none">
-          <q-select
-            v-model="rackToAdd"
-            :options="freeRacks"
-            label="Выберите стеллаж"
-            option-label="number"
-            option-value="id"
-            emit-value
-          />
+          <div style="display: grid; grid-template-columns: 3fr auto; gap: 10px; margin: 10px">
+            <q-input
+              v-mode="rackNumberToCreate"
+              label="№ стеллажа"
+              input="number"
+            />
+            <q-btn label="Создать" color="primary" @click="createRack()" />
+          </div>
+
+          <q-separator/>
+
+          <div style="display: grid; grid-template-columns: 3fr auto; gap: 10px; margin: 10px">
+            <q-select
+              v-model="rackToAdd"
+              :options="freeRacks"
+              label="Выберите стеллаж"
+              option-label="number"
+              option-value="id"
+              emit-value
+            />
+            <q-btn label="Выбрать" color="primary" @click="addRack()" />
+          </div>
         </q-card-section>
 
         <q-card-actions align="right">
           <q-btn flat label="Отмена" color="primary" v-close-popup />
-          <q-btn label="OK" color="primary" @click="addRack()" />
         </q-card-actions>
       </q-card>
     </q-dialog>

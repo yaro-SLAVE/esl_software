@@ -32,13 +32,19 @@ export default route(function (/* { store, ssrContext } */) {
 
   Router.beforeEach((to, from, next) => {
     const authStore = useAuthStore();
+    console.log(authStore.role);
 
     if (!authStore.is_auth && to.path !== '/login') {
-      console.log('fhsdkjfhkjsh')
       next('/login');
     } else if (authStore.is_auth && to.path == '/login') {
-      next('/profile')
-    } else {
+      next('/profile');
+    } else if (to.path == '/') {
+      if (authStore.role.value == 'admin')
+        next('/filials');
+      else 
+        next(`/filials/${authStore.filialId}`);
+    }
+    else {
       next();
     }
 

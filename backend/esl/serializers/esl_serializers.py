@@ -10,6 +10,6 @@ class ESLSerializer(serializers.ModelSerializer):
         fields=['id', 'esl_ip', 'rack']
 
 class ESLCreateSerializer(serializers.Serializer):
-    ip = serializers.CharField()
+    ip = serializers.CharField(required = False)
     rack = serializers.IntegerField()
     token = serializers.CharField()

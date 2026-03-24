@@ -4,8 +4,8 @@ from esl.models.company import CompanyFilial
 class Rack(models.Model):
     filial=models.ForeignKey(CompanyFilial, related_name="filial", on_delete=models.CASCADE)
     number=models.IntegerField()
-    row=models.IntegerField(default=0)
-    column=models.IntegerField(default=0)
+    row=models.IntegerField(null=True, blank=True)
+    column=models.IntegerField(null=True, blank=True)
     shelfs_count=models.IntegerField(default=1)
 
 class Product(models.Model):
