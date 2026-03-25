@@ -34,9 +34,12 @@ class RackViewset(
     GenericViewSet
 ):
     class ESLSerializer(serializers.Serializer):
-        name = serializers.CharField()
+        short_name = serializers.CharField()
         price = serializers.FloatField()
-        barcode = serializers.CharField()
+        product = serializers.IntegerField()
+        company = serializers.IntegerField()
+        have_promotion = serializers.BooleanField(required=False)
+        promotion = serializers.IntegerField(required=False)
 
     queryset=Rack.objects.all()
     permission_classes=[IsAuthenticated]
@@ -91,29 +94,53 @@ class RackViewset(
     def update(self, request, *args, **kwargs):
         r = super().update(request, *args, **kwargs)
 
-        # if ("products" in request.data):
-        #     pk = self.kwargs["pk"]
+        if ("products" in request.data):
+            pk = self.kwargs["pk"]
 
-        #     rack = Rack.objects.filter(pk=pk).first()
+            rack = Rack.objects.filter(pk=pk).first()
 
-        #     product = Product.objects.filter(rack = rack).first()
+            product = Product.objects.filter(rack = rack).first()
 
-        #     serializer = self.ESLSerializer(data={
-        #         'name': product.short_name,
-        #         'price': product.price,
-        #         'barcode': product.barcode
-        #     })
-        #     serializer.is_valid(raise_exception=True)
+            external_product = asdict(get_product_info('', product.external_id))
 
-        #     esl = ESL.objects.filter(rack = rack).first()
+            data={
+                'short_name': external_product['short_name'],
+                'price': external_product['price'],
+                'product': product.pk,
+                'company': product.rack.filial.company.pk,
+                
+            }
 
-        #     asyncio.run(self.send_to_esl(
-        #                 serializer.validated_data,
-        #                 esl.token,
-        #                 esl.esl_ip
-        #             ))
+            if 'have_promotion' in external_product:
+                data['have_promotion'] = external_product['have_promotion']
+            if 'promotion' in external_product:
+                data['promotion'] = external_product['promotion']
+
+            serializer = self.ESLSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+
+            esl = ESL.objects.filter(rack = rack).first()
+
+            asyncio.run(self.send_to_esl(
+                        serializer.validated_data,
+                        esl.token,
+                        esl.esl_ip
+                    ))
                 
         return r
+    
+    async def send_to_esl(self, data, token, esl_ip):
+        async with ClientSession() as client:
+            try:
+                response = await send_product(
+                    client, 
+                    data,
+                    token,
+                    esl_ip
+                )
+                return response
+            except ClientResponseError as e:
+                print(f"Error sending to ESL: {e}")
 
     # async def send_to_esl(self, data, token, esl_ip):
     #     async with ClientSession() as client:

@@ -8,6 +8,8 @@ class Company(models.Model):
     container_id=models.TextField(null=True, blank=True)
     integration_type=models.TextField(null=True, blank=True)
     integration_url=models.TextField(null=True, blank=True)
+    start_time=models.TimeField(null=True, blank=True)
+    end_time=models.TimeField(null=True, blank=True)
 
 class CompanyFilial(models.Model):
     company=models.ForeignKey(Company, related_name="filial_company", on_delete=models.CASCADE)

@@ -416,9 +416,9 @@ async function updateProduct(){
         <q-card-section class="q-pt-none">
           <div style="display: grid; grid-template-columns: 3fr auto; gap: 10px; margin: 10px">
             <q-input
-              v-mode="rackNumberToCreate"
+              v-model="rackNumberToCreate"
               label="№ стеллажа"
-              input="number"
+              type="number"
             />
             <q-btn label="Создать" color="primary" @click="createRack()" />
           </div>

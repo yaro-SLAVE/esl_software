@@ -396,6 +396,10 @@ def get_filial_info(id):
             'status': 'error',
             'message': f'Internal error: {str(e)}'
         }), 500
+    
+# @app.route('/api/config/', methods=['PUT'])
+# def update_config():
+
 
 if __name__ == '__main__':
     start_background_updater()

@@ -43,4 +43,4 @@ class IntegrationSerializer(serializers.ModelSerializer):
     
     class Meta:
         model=Company
-        fields=['id', 'integration_type', 'integration_url']
+        fields=['id', 'integration_type', 'integration_url', 'start_time', 'end_time', 'polling_frequency']

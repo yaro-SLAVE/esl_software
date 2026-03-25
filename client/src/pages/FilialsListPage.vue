@@ -14,7 +14,7 @@ async function fetchCompanyInfo(){
 
 onBeforeMount(async () => {
   await fetchCompanyInfo();
-})
+});
 </script>
 
 <template>

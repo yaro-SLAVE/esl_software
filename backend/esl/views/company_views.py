@@ -122,7 +122,8 @@ class IntegrationViewset(
     GenericViewSet,
     CreateModelMixin,
     ListModelMixin,
-    UpdateModelMixin
+    UpdateModelMixin,
+    RetrieveModelMixin
 ):
     queryset=Company.objects.all()
     permission_classes=[IsAuthenticated]
@@ -132,6 +133,9 @@ class IntegrationViewset(
             return IntegrationCretaeSerializer
         else:
             return IntegrationSerializer
+        
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
 
     # def create(self, request, *args, **kwargs):
     #     worker_id = str(uuid.uuid4())[:8]
@@ -158,6 +162,9 @@ class IntegrationViewset(
         company.container_id = worker_id
         company.integration_url = data['url']
         company.integration_type = data['type']
+        company.start_time = data['start_time']
+        company.end_time = data['end_time']
+        company.polling_frequency = data['polling_frequency']
 
         company.save()
         return data
