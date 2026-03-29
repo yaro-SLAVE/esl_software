@@ -1,7 +1,7 @@
 import {defineStore} from "pinia";
 import {ref, onBeforeMount, computed} from 'vue';
 import { api } from 'boot/axios';
-import { jwtDecode } from "jwt-decode";
+import { jwtDecode, InvalidTokenError  } from "jwt-decode";
 import type { User, UserProfile} from "../types"
 import { useQuasar } from 'quasar';
 
@@ -37,8 +37,12 @@ export const useAuthStore = defineStore("AuthStore", () => {
     
             return false;
         } else {
-            const decoded = jwtDecode(String(token));
-            return Date.now() < decoded.exp! * 1000;
+            try {
+                const decoded = jwtDecode(String(token));
+                return Date.now() < decoded.exp! * 1000;
+            } catch (error) {
+                return false;
+            }
         }
     }
 

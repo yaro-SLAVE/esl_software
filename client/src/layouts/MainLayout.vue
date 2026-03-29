@@ -44,7 +44,9 @@ const linksList = [
         </q-tabs>
 
         <q-btn/>
-        <q-btn/>
+        <q-btn
+          href="#/profile"
+        />
 
       </q-toolbar>
     </q-header>

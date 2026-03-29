@@ -42,7 +42,7 @@ export default route(function (/* { store, ssrContext } */) {
       if (authStore.role.value == 'admin')
         next('/filials');
       else 
-        next(`/filials/${authStore.filialId}`);
+        next(`/filials`);
     }
     else {
       next();

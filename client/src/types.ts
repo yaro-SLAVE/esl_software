@@ -31,3 +31,8 @@ export type IntegrationToUpdateCreate = {
     end_time: string | undefined,
     polling_frequency: number | undefined
 }
+
+export type CompanyOrFilial = {
+    name: string | null,
+    id: number | null,
+}

@@ -10,8 +10,7 @@ const integration = ref<Integration>();
 
 const showIntegration = ref(false);
 
-const integrationToCreateUpdate = computed<IntegrationToUpdateCreate>(() => {
-  return {
+const integrationToCreateUpdate = ref<IntegrationToUpdateCreate>({
     login: '',
     password: '',
     type: integration.value?.integration_type,
@@ -19,11 +18,10 @@ const integrationToCreateUpdate = computed<IntegrationToUpdateCreate>(() => {
     start_time: integration.value?.start_time,
     end_time: integration.value?.end_time,
     polling_frequency: integration.value?.polling_frequency
-  }
-})
+  });
 
-async function fetchCompanyInfo(){
-  const r = await api.get(`/api/integration/1/`);
+async function fetchIntegrationInfo(){
+  const r = await api.get(`/api/integration/2/`);
 
   console.log(r.data);
 
@@ -31,11 +29,33 @@ async function fetchCompanyInfo(){
 }
 
 onBeforeMount(async () => {
-  await fetchCompanyInfo();
+  await fetchIntegrationInfo();
 });
 
 async function createUpdateIntegration() {
+  let formData = new FormData();
+  formData.append('login', integrationToCreateUpdate.value.login);
+  formData.append('password', integrationToCreateUpdate.value.password);
+  formData.append('url', integrationToCreateUpdate.value.url);
+  formData.append('polling_frequency', integrationToCreateUpdate.value.polling_frequency);
+  formData.append('start_time', integrationToCreateUpdate.value.start_time);
+  formData.append('end_time', integrationToCreateUpdate.value.end_time);
 
+  if (integration.value?.integration_url === null) {
+    const r = await api.post('/api/integration/', formData);
+  } else {
+    const r = await api.put('/api/integration/2/', formData);
+  }
+
+  await fetchIntegrationInfo();
+
+  showIntegration.value = false;
+}
+
+async function deleteIntegration() {
+  const r = await api.delete('/api/integration/2/');
+
+  await fetchIntegrationInfo();
 }
 </script>
 
@@ -50,8 +70,34 @@ async function createUpdateIntegration() {
       />
     </div>
 
-    <div v-else style="">
-      
+    <div v-else style="display: flex; flex-direction: column; padding: 10px">
+      <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; align-items: center; margin: 20px">
+        <div style="display: flex; flex-direction: column">
+          <span>URL-адрес</span>
+          <span>Периодичность обновлений</span>
+          <span>Время обновлений</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column">
+          <span>{{ integration?.integration_url }}</span>
+          <span>раз в {{ integration?.polling_frequency }} секунд</span>
+          <span>с {{ integration?.start_time }} до {{ integration?.end_time }}</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: row; gap: 25px">
+        <q-btn
+          color="primary"
+          label="Изменить"
+          @click="showIntegration = true"
+        />
+
+        <q-btn
+          color="deep-orange"
+          label="Удалить"
+          @click="deleteIntegration"
+        />
+      </div>
     </div>
 
     <q-dialog v-model="showIntegration">

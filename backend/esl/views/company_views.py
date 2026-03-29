@@ -45,8 +45,6 @@ class CompanyViewset(
 
         data = asdict(company_info)
 
-        print(data)
-
         new_company, created = Company.objects.get_or_create(
             external_id = data['company']['id']
         )
@@ -123,19 +121,30 @@ class IntegrationViewset(
     CreateModelMixin,
     ListModelMixin,
     UpdateModelMixin,
-    RetrieveModelMixin
+    RetrieveModelMixin,
+    DestroyModelMixin
 ):
     queryset=Company.objects.all()
     permission_classes=[IsAuthenticated]
 
     def get_serializer_class(self):
-        if self.action == 'create':
-            return IntegrationCretaeSerializer
+        if self.action in ['create', 'update']:
+            return IntegrationCreateUpdateSerializer
         else:
             return IntegrationSerializer
         
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
+    def destroy(self, request, *args, **kwargs):
+        company = userprofile = UserProfile.objects.filter(user = self.request.user).first().company
+
+        company.integration_url = None
+        # company.integration_type = data['type']
+        company.start_time = None
+        company.end_time = None
+        company.polling_frequency = None
+
+        company.save()
+
+        return Response(status=200)
 
     # def create(self, request, *args, **kwargs):
     #     worker_id = str(uuid.uuid4())[:8]
@@ -153,18 +162,3 @@ class IntegrationViewset(
     #         "service_name": service.metadata.name,
     #         "access_url": f"http://{service.metadata.name}.default.svc.cluster.local:5000"
     #     })
-
-    def create(self, request, *args, **kwargs):
-        data = request.data
-        company = userprofile = UserProfile.objects.filter(user = self.request.user).first().company
-
-        worker_id = str(uuid.uuid4())[:8]
-        company.container_id = worker_id
-        company.integration_url = data['url']
-        company.integration_type = data['type']
-        company.start_time = data['start_time']
-        company.end_time = data['end_time']
-        company.polling_frequency = data['polling_frequency']
-
-        company.save()
-        return data

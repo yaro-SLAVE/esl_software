@@ -173,7 +173,7 @@ class ProductViewset(
     GenericViewSet
 ):
     queryset=Product.objects.all()
-    permission_classes=[IsAuthenticated]
+    # permission_classes=[IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == 'show_product':
