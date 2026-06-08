@@ -2,6 +2,7 @@
 import { api } from 'boot/axios';
 import { ref, computed, onBeforeMount } from 'vue';
 import { useRoute } from 'vue-router';
+import draggable from 'vuedraggable';
 
 type ActiveSquare = {
   row: number;
@@ -28,18 +29,23 @@ const activeSquare = ref<ActiveSquare | null>(null);
 
 const filialInfo = ref();
 
-const showProduct = ref(false);
+const showUpdateProduct = ref(false);
+const showAddProduct = ref(false);
 
 const products = ref([]);
 
-const productToUpdate = ref();
+const productToUpdate = ref(null);
 
 const showRack = ref(false);
 const rackToAdd = ref();
 const rackNumberToCreate = ref();
 
+const selectedProductNumber = ref(0);
+
+const currentUrl = computed(() => route.fullPath);
+
 async function fetchRacks() {
-  const r = await api.get('/api/rack/?filial=1');
+  const r = await api.get(`/api/rack/?filial=${currentUrl.value.split('/')[currentUrl.value.split('/').length-1]}`);
   console.log(r.data);
   filialInfo.value = r.data;
   rows.value = filialInfo.value.filial.rows;
@@ -92,14 +98,14 @@ const matrix = computed(() => {
     matrixArray.push(row);
   }
 
-  if (filialInfo.value !== undefined) {
-    filialInfo.value.racks.forEach((rack, index) => {
-      if (rack.row !== null && rack.column !== null) {
-        matrix.value[rack.row][rack.column].rack_id = index;
-        matrix.value[rack.row][rack.column].rack_number = rack.number;
-      }
-    });
-  }
+  // if (filialInfo.value !== undefined) {
+  //   filialInfo.value.racks.forEach((rack, index) => {
+  //     if (rack.row !== null && rack.column !== null) {
+  //       matrix.value[rack.row][rack.column].rack_id = index;
+  //       matrix.value[rack.row][rack.column].rack_number = rack.number;
+  //     }
+  //   });
+  // }
   
   return matrixArray;
 });
@@ -116,20 +122,6 @@ const freeRacks = computed(() => {
   }
 
   console.log(data);
-
-  return data;
-});
-
-const freeProducts = computed(() => {
-  let data = [];
-
-  if (products.value !== []) {
-    products.value.forEach(product => {
-      if (product.rack === null) {
-        data.push(product);
-      }
-    });
-  }
 
   return data;
 });
@@ -234,9 +226,10 @@ async function deleteRack(id: number) {
 
 async function updateProduct(){
   const dataArray = [{
-    id: productToUpdate.value,
+    external_id: productToUpdate.value.external_id,
+    short_name: productToUpdate.value.short_name,
     shelf: 0,
-    number: 0
+    number: selectedProductNumber.value
   }];
 
   const body = {
@@ -251,10 +244,82 @@ async function updateProduct(){
     }
   });
 
-  showProduct.value = false;
+  showUpdateProduct.value = false;
+  productToUpdate.value = null;
 
   await fetchProducts();
   await fetchRacks();
+}
+
+async function addProduct(){
+  const dataArray = [{
+    external_id: productToUpdate.value.external_id,
+    short_name: productToUpdate.value.short_name,
+    shelf: 0,
+    number: filialInfo.value.racks[activeSquare.value.rack_id].products.length
+  }];
+
+  const body = {
+    products: dataArray
+  }
+
+  const id = filialInfo.value.racks[activeSquare.value.rack_id].id;
+
+  const r = await api.put(`/api/rack/${id}/`, body, {
+    headers: {
+      "Content-Type": "application/json"
+    }
+  });
+
+  showUpdateProduct.value = false;
+  productToUpdate.value = null;
+
+  await fetchProducts();
+  await fetchRacks();
+}
+
+async function deleteProduct() {
+
+}
+
+async function updateProductOrder() {
+  const activeRack = filialInfo.value.racks[activeSquare.value.rack_id];
+
+  console.log(activeRack.products);
+
+  const dataArray = activeRack.products.map((product: any, index: number) => {
+    return {
+      id: product.id,
+      shelf: 0,
+      number: index
+    };
+  });
+
+  const body = {
+    products: dataArray,
+    order_change: true
+  };
+
+  const id = activeRack.id;
+  
+  try {
+    const r = await api.put(`/api/rack/${id}/`, body, {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    
+    await fetchProducts();
+    await fetchRacks();
+  } catch (error) {
+    console.error("Ошибка при обновлении порядка продуктов:", error);
+  }
+}
+
+function openProductModal(product, productNumber) {
+  showUpdateProduct.value = true;
+  productToUpdate.value = product;
+  selectedProductNumber.value = productNumber;
 }
 
 </script>
@@ -348,21 +413,34 @@ async function updateProduct(){
               <div>
                 <h5>Продукты:</h5>
 
-                <div v-for="product in filialInfo.racks[activeSquare.rack_id].products">
+                <div class="row">
+                  <draggable 
+                    v-model="filialInfo.racks[activeSquare.rack_id].products" 
+                    item-key="id"
+                    class="row"
+                    @end="updateProductOrder"
+                  >
+                    <template #item="{ element }">
+                      <div class="product-wrapper">
+                        <q-btn
+                          square
+                          class="product cursor-move ellipsis-2-lines"
+                          :label="`${element.short_name}`"
+                          @click="openProductModal(element, element.number)"
+                        />
+                      </div>
+                    </template>
+                  </draggable>
+
+
                   <q-btn
+                    v-if="filialInfo.racks[activeSquare.rack_id].products.length < 8"
                     square
-                    class="product"
-                    :label="`${product.short_name}`"
-                    @click="showProduct = true"
+                    class="product_add_delete"
+                    label="+"
+                    @click="showAddProduct = true"
                   />
                 </div>
-                <q-btn
-                  v-if="filialInfo.racks[activeSquare.rack_id].products.length === 0"
-                  square
-                  class="product"
-                  label="Добавить продукт"
-                  @click="showProduct = true"
-                />
               </div>
             </div>
 
@@ -383,7 +461,7 @@ async function updateProduct(){
       </div>
     </div>
 
-    <q-dialog v-model="showProduct">
+    <q-dialog v-model="showUpdateProduct">
       <q-card style="width: 500px; max-width: 80vw;">
         <q-card-section>
           <div class="text-h6">Изменение продукта</div>
@@ -392,10 +470,9 @@ async function updateProduct(){
         <q-card-section class="q-pt-none">
           <q-select
             v-model="productToUpdate"
-            :options="freeProducts"
+            :options="products"
             label="Выберите продукт"
             option-label="short_name"
-            option-value="id"
             emit-value
           />
         </q-card-section>
@@ -403,6 +480,30 @@ async function updateProduct(){
         <q-card-actions align="right">
           <q-btn flat label="Отмена" color="primary" v-close-popup />
           <q-btn label="OK" color="primary" @click="updateProduct()" />
+          <q-btn label="Удалить" color="warning" @click="deleteProduct()" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+        <q-dialog v-model="showAddProduct">
+      <q-card style="width: 500px; max-width: 80vw;">
+        <q-card-section>
+          <div class="text-h6">Добавление продукта</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-select
+            v-model="productToUpdate"
+            :options="products"
+            label="Выберите продукт"
+            option-label="short_name"
+            emit-value
+          />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Отмена" color="primary" v-close-popup />
+          <q-btn label="OK" color="primary" @click="addProduct()" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -466,6 +567,16 @@ async function updateProduct(){
   .product {
     width: 90px;
     height: 90px;
+    background-color: #F4F2F2;
+    margin: 8px;
+    border-radius: 15%;
+    font-size: 10px;
+    max-width: 90px;
+  }
+
+    .product_add_delete {
+    width: 40px;
+    height: 40px;
     background-color: #F4F2F2;
     margin: 8px;
     border-radius: 15%;

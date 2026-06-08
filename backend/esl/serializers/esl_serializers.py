@@ -13,3 +13,14 @@ class ESLCreateSerializer(serializers.Serializer):
     ip = serializers.CharField(required = False)
     rack = serializers.IntegerField()
     token = serializers.CharField()
+
+class ESLErrorSerializer(serializers.Serializer):
+    rack = serializers.CharField()
+    channel = serializers.CharField()
+    status = serializers.CharField()
+
+class ESLErrorItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ESLError
+        fields = ['id', 'status', 'date']
+

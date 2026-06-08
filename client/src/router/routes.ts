@@ -6,6 +6,8 @@ import ProfilePage from '../pages/ProfilePage.vue';
 import ProductShowPage from '../pages/ProductShowPage.vue'
 import IndexPage from "../pages/IndexPage.vue"
 import IntegrationPage from '../pages/IntegrationPage.vue';
+import StatisticsPage from 'src/pages/StatisticsPage.vue';
+import ErrorsPage from 'src/pages/ErrorsPage.vue';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -39,10 +41,18 @@ const routes: RouteRecordRaw[] = [
   },
 
   {
-    path: '/profile',
+    path: '/statistics',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => ProfilePage },
+      { path: '', component: () => StatisticsPage },
+    ],
+  },
+
+  {
+    path: '/errors',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      { path: '', component: () => ErrorsPage },
     ],
   },
 

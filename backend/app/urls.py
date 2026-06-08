@@ -42,6 +42,7 @@ router.register("company", CompanyViewset, basename="company")
 router.register("filial", CompanyFilialViewset, basename="filial")
 router.register("integration", IntegrationViewset, basename="integration")
 router.register("esl", ESLViewset, basename="esl")
+router.register("esl/error", ESLViewset, basename="esl/error")
 
 urlpatterns = [
     path("admin/", admin.site.urls),

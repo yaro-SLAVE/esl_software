@@ -1,9 +1,13 @@
+from dataclasses import asdict
+
 from rest_framework import serializers
 
 from esl.models.company import *
 from esl.models.rack import *
 
 from esl.serializers.company_serializers import CompanySerializer, CompanyFilialSerializer
+
+from esl.onec_1c.services import get_product_info
 
 class RackListSerializer(serializers.Serializer):
     class FilialSerializer(serializers.Serializer):
@@ -13,6 +17,7 @@ class RackListSerializer(serializers.Serializer):
 
     class RackSerilizer(serializers.Serializer):
         class ProductSerializer(serializers.Serializer):
+            id=serializers.IntegerField()
             external_id=serializers.CharField()
             short_name=serializers.CharField()
             shelf=serializers.IntegerField()
@@ -31,31 +36,45 @@ class RackListSerializer(serializers.Serializer):
 class ProductToRackUpdateSerializer(serializers.Serializer):
     shelf = serializers.IntegerField()
     number = serializers.IntegerField()
-    id = serializers.IntegerField()
+    external_id = serializers.CharField(required=False)
+    id = serializers.IntegerField(required=False)
+    short_name = serializers.CharField(required=False)
 
 class RackUpdateSerializer(serializers.Serializer):
     products = ProductToRackUpdateSerializer(many=True, required=False)
     row = serializers.IntegerField(required=False)
     column = serializers.IntegerField(required=False)
+    order_change = serializers.BooleanField(required=False)
 
     def update(self, instance, validated_data):
         if "products" in validated_data:
-            products_to_delete = Product.objects.filter(rack = instance).all()
+            if 'order_change' in validated_data:
+                products_to_change = validated_data["products"]
 
-            for product in products_to_delete:
-                product.rack = None
-                product.shelf = -1
-                product.number = -1
-                product.save()
+                for product in products_to_change:
+                    product_to_add = Product.objects.filter(pk = product["id"]).first()
+                    product_to_add.number = product["number"]
+                    product_to_add.save()
             
-            products_to_add = validated_data["products"]
+            else:
+                products_to_add = validated_data["products"]
 
-            for product in products_to_add:
-                product_to_change = Product.objects.filter(pk = product["id"]).first()
-                product_to_change.rack = instance
-                product_to_change.shelf = product["shelf"]
-                product_to_change.number = product["number"]
-                product_to_change.save()
+                products_in_rack = Product.objects.filter(rack = instance).all()
+
+                for product in products_to_add:
+                    if product['number'] < len(products_in_rack):
+                        product_to_delete = Product.objects.filter(rack = instance, number = product['number'], shelf = product['shelf']).first()
+
+                        if (product_to_delete is not None):
+                            product_to_delete.delete()
+                    
+                    product_to_add= Product.objects.create(
+                        external_id=product["external_id"],
+                        shelf = product["shelf"],
+                        number = product["number"],
+                        rack=instance,
+                        short_name = product["short_name"]
+                    )
         
         elif "row" in validated_data:
             instance.row =validated_data["row"]
@@ -75,6 +94,10 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model=Product
         fields=['id', 'short_name', 'external_id', 'rack']
+
+class ProductFilialListSerializer(serializers.Serializer):
+    external_id = serializers.CharField()
+    short_name = serializers.CharField()
 
 class ProductShowSerializer(serializers.Serializer):
     id = serializers.CharField()

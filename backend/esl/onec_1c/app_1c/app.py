@@ -220,6 +220,8 @@ def get_products_list():
                 'short_name': product.get('Description'),
             })
 
+        print(products_data)
+
         return products_data
             
     except requests.exceptions.RequestException as e:

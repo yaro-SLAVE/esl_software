@@ -11,7 +11,7 @@ const linksList = [
   },
   {
     title: 'Статистика',
-    link: '/'
+    link: '/statistics'
   },
   {
     title: 'Прошивка',
@@ -43,7 +43,11 @@ const linksList = [
           />
         </q-tabs>
 
-        <q-btn/>
+        <q-btn
+          href="#/errors"
+          label="Ошибки: 1"
+          color="red"
+        />
         <q-btn
           href="#/profile"
         />

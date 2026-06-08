@@ -53,3 +53,11 @@ class ESLViewset(
         esl.save()
         return Response(data)
         # return super().create(request, *args, **kwargs)
+
+class ESLError(
+    ListModelMixin,
+    CreateModelMixin,
+    DestroyModelMixin,
+    GenericViewSet
+):
+    queryset=ESLError.objects.all()

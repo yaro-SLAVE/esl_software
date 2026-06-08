@@ -13,3 +13,5 @@ class ESLError(models.Model):
     description=models.TextField(null=True, blank=True)
     esl=models.ForeignKey(ESL, related_name="esl_error", on_delete=models.CASCADE)
     date=models.DateTimeField(null=True, blank=True, default=datetime.now())
+    status=models.IntegerField(null=True, blank=True)
+    

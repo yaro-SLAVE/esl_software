@@ -14,6 +14,6 @@ class ESLResponse(DataClassJsonMixin):
 async def send_product(client: ClientSession, data, token: str, ip: str) -> ESLResponse:
     headers = {"Authorization": 'Bearer ' + token}
 
-    r = await client.post(f"http://{ip}/api/product/", json=data, headers=headers)
+    r = await client.post(f"http://{ip}/api/product/", json={'data': data}, headers=headers)
     r.raise_for_status()
     return ESLResponse.schema().load(await r.json())
