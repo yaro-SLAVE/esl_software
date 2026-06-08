@@ -5,6 +5,7 @@ from esl.models.esl import *
 from esl.serializers.rack_serializers import RackSerializer
 
 class ESLSerializer(serializers.ModelSerializer):
+    rack = RackSerializer()
     class Meta:
         model=ESL
         fields=['id', 'esl_ip', 'rack']
@@ -19,8 +20,9 @@ class ESLErrorSerializer(serializers.Serializer):
     channel = serializers.CharField()
     status = serializers.CharField()
 
-class ESLErrorItemSerializer(serializers.ModelSerializer):
+class ESLErrorListSerializer(serializers.ModelSerializer):
+    esl = ESLSerializer()
     class Meta:
         model = ESLError
-        fields = ['id', 'status', 'date']
-
+        fields = ['id', 'status', 'date', 'channel', 'esl']
+    

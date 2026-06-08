@@ -45,7 +45,7 @@ const linksList = [
 
         <q-btn
           href="#/errors"
-          label="Ошибки: 1"
+          label="Ошибки"
           color="red"
         />
         <q-btn

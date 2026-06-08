@@ -100,7 +100,6 @@ const errorChartData = ref({
 <template>
   <q-page>
     <div class="row q-col-gutter-md q-mb-md">
-      <!-- Магазины -->
       <div class="col-12 col-md-3">
         <q-card flat bordered class="full-height rounded-borders">
           <q-card-section>
@@ -111,7 +110,6 @@ const errorChartData = ref({
         </q-card>
       </div>
 
-      <!-- Товары -->
       <div class="col-12 col-md-3">
         <q-card flat bordered class="full-height rounded-borders">
           <q-card-section>
@@ -124,7 +122,6 @@ const errorChartData = ref({
         </q-card>
       </div>
 
-      <!-- Устройства -->
       <div class="col-12 col-md-3">
         <q-card flat bordered class="full-height rounded-borders">
           <q-card-section>
@@ -135,7 +132,6 @@ const errorChartData = ref({
         </q-card>
       </div>
 
-      <!-- Фильтры -->
       <div class="col-12 col-md-3">
         <q-card flat bordered class="bg-grey-3 full-height rounded-borders">
           <q-card-section class="q-gutter-y-sm">

@@ -27,3 +27,7 @@ class ProductAdmin(admin.ModelAdmin):
 @admin.register(ESL)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['id']
+
+@admin.register(ESLError)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ['id']
